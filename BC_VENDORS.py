@@ -11,6 +11,7 @@ import time
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
 sql_table = "dbo.BC_Vendors"
+print("SQL Server connection string created")
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_MS_BC
@@ -19,12 +20,14 @@ api_full = api_url + "/" + api_table + "?company="
 
 # Delete function
 def delete_sql_table(connection):
+    print("Deleting SQL table")
     cursor = connection.cursor()
     cursor.execute(f"DELETE FROM {sql_table}")
     connection.commit()
 
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
+    
     cursor = connection.cursor()
 
     sql_insert = f"""
@@ -65,7 +68,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-
+    print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -75,6 +78,7 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         #connection1 = pyodbc.connect(connection_string2)
+        print("Establishing SQL Server connection")
         connection = pyodbc.connect(connection_string)
 
         # Get a list of company names from SQL Server
@@ -83,6 +87,7 @@ if __name__ == "__main__":
         delete_sql_table(connection)
 
         for company_name in company_names:
+            print(f"Processing company: {company_name}")
             iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
             api = f"{api_full}{company_name}"  
             access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)  
@@ -106,9 +111,10 @@ if __name__ == "__main__":
 
 
     finally:
-        
+        print("Closing SQL Server connection")
         connection.close()
         end_time = time.time()  # Record end time
+        duration = (end_time - start_time )/60 # Calculate duration
         duration_minutes_rounded = round(duration, 2)
 
         # Print results

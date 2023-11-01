@@ -7,13 +7,14 @@ config.read('config.ini')
 client_id = config['API']['client_id']
 client_secret = config['API']['client_secret']
 token_url = "https://login.microsoftonline.com/cc91eaa9-c853-432b-a07d-291b2935204b/oauth2/v2.0/token"
+vs_token = config['API']['vs_token']
 
 
 # Base endpoints
 end_REST_BOLTRICS_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/api/boltrics/boltrics/v1.0"
 end_REST_MS_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/api/v2.0"
 end_Odata_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/ODataV4"
-end_veson =  ""
+end_veson =  "https://api.veslink.com/v1/imos/reports/"
 
 # Server credentials
 server = "HV-db"

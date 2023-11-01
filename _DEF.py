@@ -91,6 +91,23 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
             next_link = None
 
 
+def make_api_request_vs(api_base, params=None):
+    if params is None:
+        params = {}
+    headers = {
+        'Content-Type': 'application/xml'
+    }
+    response = requests.get(api_base, headers=headers, params=params)
+    try:
+        response.raise_for_status()  # Check for HTTP error status
+        data = response.json()
+        return data  # Return the entire data
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error making API request: {e}")
+    except Exception as e:
+        print(f"Error making API request: {e}")
+
+
 def get_yesterday_date():
     yesterday = datetime.now() - timedelta(days=1)
     return yesterday.strftime('%Y-%m-%d')
