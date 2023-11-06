@@ -22,7 +22,6 @@ database = "Staging"
 username = config['SERVER']['username']
 password = config['SERVER']['password']
 
-#connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
 
 #mail credentials
 email_username = config['EMAIL']['email_username']

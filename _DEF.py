@@ -8,7 +8,6 @@ import csv
 import io
 
 
-
 #send mail
 def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, smtp_username, smtp_password):
     msg = MIMEText(body)
@@ -96,7 +95,7 @@ def make_api_request_vs(api_base, params=None):
     if params is None:
         params = {}
     headers = {
-        'Content-Type': 'text/csv'
+        'Content-Type':'text/csv'
     }
     response = requests.get(api_base, headers=headers, params=params)
     try:
@@ -117,3 +116,12 @@ def get_yesterday_date():
     return yesterday.strftime('%Y-%m-%d')
 
 yesterday_date = get_yesterday_date()
+
+
+def insert_data_into_sql(connection, data, table):
+    cursor = connection.cursor()
+
+    # Prepare the SQL insert statement
+    column_names = data[0].keys()
+    placeholders = ', '.join(['?'] * len(column_names))
+    sql_insert = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({placeholders})"

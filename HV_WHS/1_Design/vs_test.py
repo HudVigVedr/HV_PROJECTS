@@ -1,30 +1,20 @@
 import requests
-import pyodbc
-import json
-import smtplib
-from email.mime.text import MIMEText
-import time
 import csv
+import pyodbc
+
 import sys
 sys.path.append('C:/HV-PROJECTS')
 import _AUTH
 import _DEF 
 
-# SQL Server connection settings
-connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-sql_table = "dbo.VS_voyages"
-
-# API endpoint URL (same as before) -> aanvullen
+# API Endpoint
 api_url = _AUTH.end_veson
 api_table = "Fixtures_WHS_HV"
 api_full = api_url + "/" + api_table + _AUTH.vs_token
 
-# Delete function
-def delete_sql_table(connection):
-    print("Deleting SQL table")
-    cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {sql_table}")
-    connection.commit()
+# SQL Server Connection Settings
+connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID={_AUTH.username};PWD={_AUTH.password}"
+sql_table = "dbo.VS_voyages3"
 
 # Function to Fetch Data from API
 def fetch_data_from_api(url):
@@ -50,7 +40,7 @@ def insert_data_into_sql(connection, data, table):
 if __name__ == "__main__":
     # Fetch data from API
     csv_data = fetch_data_from_api(api_full)
-
+    print(csv_data)
     # Convert CSV data to a list of dictionaries
     data_to_insert = []
     csv_reader = csv.DictReader(csv_data.splitlines())

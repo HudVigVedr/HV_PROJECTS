@@ -1,6 +1,3 @@
-# ==> This script will skip records that already exist <==
-
-
 import requests
 import pyodbc
 import json
@@ -9,21 +6,32 @@ from email.mime.text import MIMEText
 import time
 
 import sys
-sys.path.append('C:/HV-WHS')
+sys.path.append('C:/HV-PROJECTS')
 import _AUTH
 import _DEF 
 
+
+
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-#connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.BC_GLentries"
+
+sql_table = "dbo.BC_wmsDL"
 print("SQL Server connection string created")
+
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "generalLedgerEntries"
-api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
-#api_full = api_url + "/" + api_table + "?company="
+api_table = "wmsDocumentLines"
+api_full = api_url + "/" + api_table + "?" + "$select=agreementNo,agreementType,batchNo,buyFromVendorNo,createdDateTime,createdUserID,currencyCode,documentNo,id,invoiceDate,invoiceNo,invoiceType,itemCategoryCode,lineAmount,lineAmountLCY,lineNo,modifiedDateTime,modifiedUserID,no,postingDate,productGroupCode,purchInvoiceDate,purchInvoiceNo,purchInvoiceType,quantity,sellToCustomerNo,shortcutDimension2Code,systemCreatedAt,systemModifiedAt,type,unitPrice&$filter=type eq 'Cost' or type eq 'Service'&company="
+
+
+
+# Delete function
+def delete_sql_table(connection):
+    print("Deleting SQL table")
+    cursor = connection.cursor()
+    cursor.execute(f"DELETE FROM {sql_table}")
+    connection.commit()
 
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
@@ -32,108 +40,52 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [@odata.etag]
-            ,[id]
-            ,[systemCreatedAt]
-            ,[systemCreatedBy]
-            ,[systemModifiedAt]
-            ,[systemModifiedBy]
-            ,[entryNo]
-            ,[gLAccountNo]
-            ,[postingDate]
-            ,[documentType]
-            ,[documentNo]
-            ,[description]
-            ,[balAccountNo]
-            ,[amount]
-            ,[globalDimension1Code]
-            ,[globalDimension2Code]
-            ,[userID]
-            ,[sourceCode]
-            ,[systemCreatedEntry]
-            ,[priorYearEntry]
-            ,[jobNo]
-            ,[quantity]
-            ,[vatAmount]
-            ,[businessUnitCode]
-            ,[journalBatchName]
-            ,[reasonCode]
-            ,[genPostingType]
-            ,[genBusPostingGroup]
-            ,[genProdPostingGroup]
-            ,[balAccountType]
-            ,[transactionNo]
-            ,[debitAmount]
-            ,[creditAmount]
-            ,[documentDate]
-            ,[externalDocumentNo]
-            ,[sourceType]
-            ,[sourceNo]
-            ,[noSeries]
-            ,[taxAreaCode]
-            ,[taxLiable]
-            ,[taxGroupCode]
-            ,[useTax]
-            ,[vatBusPostingGroup]
-            ,[vatProdPostingGroup]
-            ,[additionalCurrencyAmount]
-            ,[addCurrencyDebitAmount]
-            ,[addCurrencyCreditAmount]
-            ,[closeIncomeStatementDimID]
-            ,[icPartnerCode]
-            ,[reversed]
-            ,[reversedByEntryNo]
-            ,[reversedEntryNo]
-            ,[gLAccountName]
-            ,[journalTemplName]
-            ,[dimensionSetID]
-            ,[shortcutDimension3Code]
-            ,[shortcutDimension4Code]
-            ,[shortcutDimension5Code]
-            ,[shortcutDimension6Code]
-            ,[shortcutDimension7Code]
-            ,[shortcutDimension8Code]
-            ,[lastDimCorrectionEntryNo]
-            ,[lastDimCorrectionNode]
-            ,[dimensionChangesCount]
-            ,[prodOrderNo]
-            ,[faEntryType]
-            ,[faEntryNo]
-            ,[comment]
-            ,[accountId]
-            ,[lastModifiedDateTime]
-            ,[documentLineNo3PL]
-            ,[wmsDocumentType]
-            ,[wmsDocumentNo]
-            ,[wmsDocumentLineNo]
-            ,[tmsDocumentType]
-            ,[tmsDocumentNo]
-            ,[tmsDocumentSequenceNo]
-            ,[tmsDocumentLineNo]
-            ,[ultimo]
-            ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    sql_check_exists = f"""
-        SELECT 1 FROM {sql_table}
-        WHERE [entryNo] = ? AND [Entity] = ?
+         [ODataEtag]
+        ,[Id]
+        ,[SystemCreatedAt]
+        ,[SystemModifiedAt]
+        ,[DocumentNo]
+        ,[LineNo]
+        ,[SellToCustomerNo]
+        ,[BuyFromVendorNo]
+        ,[CurrencyCode]
+        ,[LineAmountLCY]
+        ,[Type]
+        ,[No]
+        ,[Quantity]
+        ,[UnitPrice]
+        ,[LineAmount]
+        ,[CreatedDateTime]
+        ,[CreatedUserID]
+        ,[ModifiedDateTime]
+        ,[ModifiedUserID]
+        ,[ItemCategoryCode]
+        ,[ProductGroupCode]
+        ,[BatchNo]
+        ,[ShortcutDimension2Code]
+        ,[PostingDate]
+        ,[InvoiceType]
+        ,[InvoiceNo]
+        ,[InvoiceDate]
+        ,[PurchInvoiceType]
+        ,[PurchInvoiceNo]
+        ,[PurchInvoiceDate]
+        ,[AgreementType]
+        ,[AgreementNo]
+        ,[Entity]
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     for item in data:
         values = list(item.values())
-        entity_id = item.get('id')
-        entry_no = item.get('entryNo')
-        if entity_id is not None and entry_no is not None:
-            cursor.execute(sql_check_exists, (entry_no, company_name))
-            if cursor.fetchone() is None:
-                values.append(company_name)  # add company name to the list of values
-                cursor.execute(sql_insert, tuple(values))
+        values.append(company_name)  # add company name to the list of values
+        cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
    
 if __name__ == "__main__":
+
     print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
@@ -149,6 +101,8 @@ if __name__ == "__main__":
 
         # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
+
+        delete_sql_table(connection)
 
         for company_name in company_names:
             print(f"Processing company: {company_name}")
@@ -199,7 +153,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_FIN_GLE_U',
+            'HV-WHS / Script Summary - BC_wmsDL',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

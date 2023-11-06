@@ -6,13 +6,12 @@ from email.mime.text import MIMEText
 import time
 
 import sys
-sys.path.append('C:/HV-WHS')
+sys.path.append('H:/HV-PROJECTS')
 import _AUTH
 import _DEF 
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-#connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
 sql_table = "dbo.BC_GLaccounts"
 print("SQL Server connection string created")
 
