@@ -4,11 +4,14 @@
 import requests
 import pyodbc
 import json
-import _AUTH
-import _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
+
+import sys
+sys.path.append('C:/HV-WHS')
+import _AUTH
+import _DEF 
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
@@ -19,8 +22,8 @@ print("SQL Server connection string created")
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-#api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
-api_full = api_url + "/" + api_table + "?company="
+api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+#api_full = api_url + "/" + api_table + "?company="
 
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):

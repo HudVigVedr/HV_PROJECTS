@@ -2,7 +2,7 @@ import requests
 import pyodbc
 import json
 import _AUTH
-import _DEF
+import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
@@ -10,65 +10,121 @@ import time
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.BC_Vendors"
-print("SQL Server connection string created")
+sql_table = "dbo.BC_FIN_GLentries"
 
 # API endpoint URL (same as before) -> aanvullen
-api_url = _AUTH.end_REST_MS_BC
-api_table = "vendors"
-api_full = api_url + "/" + api_table + "?company="
-
-# Delete function
-def delete_sql_table(connection):
-    print("Deleting SQL table")
-    cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {sql_table}")
-    connection.commit()
+api_url = _AUTH.end_REST_BOLTRICS_BC
+api_table = "generalLedgerEntries"
+api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
 
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
-    
     cursor = connection.cursor()
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [@odata.etag]
+            [odata.etag]
             ,[id]
-            ,[number]
-            ,[displayName]
-            ,[addressLine1]
-            ,[addressLine2]
-            ,[city]
-            ,[state]
-            ,[country]
-            ,[postalCode]
-            ,[phoneNumber]
-            ,[email]
-            ,[website]
-            ,[taxRegistrationNumber]
-            ,[currencyId]
-            ,[currencyCode]
-            ,[irs1099Code]
-            ,[paymentTermsId]
-            ,[paymentMethodId]
+            ,[systemCreatedAt]
+            ,[systemCreatedBy]
+            ,[systemModifiedAt]
+            ,[systemModifiedBy]
+            ,[entryNo]
+            ,[gLAccountNo]
+            ,[postingDate]
+            ,[documentType]
+            ,[documentNo]
+            ,[description]
+            ,[balAccountNo]
+            ,[amount]
+            ,[globalDimension1Code]
+            ,[globalDimension2Code]
+            ,[userID]
+            ,[sourceCode]
+            ,[systemCreatedEntry]
+            ,[priorYearEntry]
+            ,[jobNo]
+            ,[quantity]
+            ,[vatAmount]
+            ,[businessUnitCode]
+            ,[journalBatchName]
+            ,[reasonCode]
+            ,[genPostingType]
+            ,[genBusPostingGroup]
+            ,[genProdPostingGroup]
+            ,[balAccountType]
+            ,[transactionNo]
+            ,[debitAmount]
+            ,[creditAmount]
+            ,[documentDate]
+            ,[externalDocumentNo]
+            ,[sourceType]
+            ,[sourceNo]
+            ,[noSeries]
+            ,[taxAreaCode]
             ,[taxLiable]
-            ,[blocked]
-            ,[balance]
+            ,[taxGroupCode]
+            ,[useTax]
+            ,[vatBusPostingGroup]
+            ,[vatProdPostingGroup]
+            ,[additionalCurrencyAmount]
+            ,[addCurrencyDebitAmount]
+            ,[addCurrencyCreditAmount]
+            ,[closeIncomeStatementDimID]
+            ,[icPartnerCode]
+            ,[reversed]
+            ,[reversedByEntryNo]
+            ,[reversedEntryNo]
+            ,[gLAccountName]
+            ,[journalTemplName]
+            ,[dimensionSetID]
+            ,[shortcutDimension3Code]
+            ,[shortcutDimension4Code]
+            ,[shortcutDimension5Code]
+            ,[shortcutDimension6Code]
+            ,[shortcutDimension7Code]
+            ,[shortcutDimension8Code]
+            ,[lastDimCorrectionEntryNo]
+            ,[lastDimCorrectionNode]
+            ,[dimensionChangesCount]
+            ,[prodOrderNo]
+            ,[faEntryType]
+            ,[faEntryNo]
+            ,[comment]
+            ,[accountId]
             ,[lastModifiedDateTime]
+            ,[documentLineNo3PL]
+            ,[wmsDocumentType]
+            ,[wmsDocumentNo]
+            ,[wmsDocumentLineNo]
+            ,[tmsDocumentType]
+            ,[tmsDocumentNo]
+            ,[tmsDocumentSequenceNo]
+            ,[tmsDocumentLineNo]
+            ,[ultimo]
             ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    sql_check_exists = f"""
+        SELECT 1 FROM {sql_table}
+        WHERE [id] = ? AND [Entity] = ?
     """
 
     for item in data:
         values = list(item.values())
-        values.append(company_name)  # add company name to the list of values
-        cursor.execute(sql_insert, tuple(values))
+        entity_id = item.get('id')
+        if entity_id is not None:
+            cursor.execute(sql_check_exists, (entity_id, company_name))
+            if cursor.fetchone() is None:
+                values.append(company_name)  # add company name to the list of values
+                cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
    
 if __name__ == "__main__":
-    print("Script started")
+
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -78,16 +134,12 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         #connection1 = pyodbc.connect(connection_string2)
-        print("Establishing SQL Server connection")
         connection = pyodbc.connect(connection_string)
 
         # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
 
-        delete_sql_table(connection)
-
         for company_name in company_names:
-            print(f"Processing company: {company_name}")
             iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
             api = f"{api_full}{company_name}"  
             access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)  
@@ -111,11 +163,10 @@ if __name__ == "__main__":
 
 
     finally:
-        print("Closing SQL Server connection")
+        
         connection.close()
         end_time = time.time()  # Record end time
         duration = (end_time - start_time )/60 # Calculate duration
-        duration_minutes_rounded = round(duration, 2)
 
         # Print results
         print(f"Total rows inserted: {rows_inserted}")
@@ -123,7 +174,7 @@ if __name__ == "__main__":
 
         
         # Prepare email content
-        email_body = f"The script completed in {duration_minutes_rounded} minutes with {rows_inserted} total rows inserted.\n\n"
+        email_body = f"The script completed in {duration} seconds with {rows_inserted} total rows inserted.\n\n"
         if successes:
             email_body += "Successes:\n" + "\n".join(successes) + "\n\n"
         if failures:
@@ -135,7 +186,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_vendors',
+            'Script Summary - BC_FIN_GLE_U',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

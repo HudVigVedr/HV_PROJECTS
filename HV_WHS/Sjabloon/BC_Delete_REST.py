@@ -2,7 +2,7 @@ import requests
 import pyodbc
 import json
 import _AUTH
-import _DEF
+import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
@@ -15,7 +15,13 @@ sql_table = "dbo.BC_FIN_GLentries"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+api_full = api_url + "/" + api_table + "?company="
+
+# Delete function
+def delete_sql_table(connection):
+    cursor = connection.cursor()
+    cursor.execute(f"DELETE FROM {sql_table}")
+    connection.commit()
 
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
@@ -106,19 +112,10 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
-    sql_check_exists = f"""
-        SELECT 1 FROM {sql_table}
-        WHERE [id] = ? AND [Entity] = ?
-    """
-
     for item in data:
         values = list(item.values())
-        entity_id = item.get('id')
-        if entity_id is not None:
-            cursor.execute(sql_check_exists, (entity_id, company_name))
-            if cursor.fetchone() is None:
-                values.append(company_name)  # add company name to the list of values
-                cursor.execute(sql_insert, tuple(values))
+        values.append(company_name)  # add company name to the list of values
+        cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
@@ -138,6 +135,8 @@ if __name__ == "__main__":
 
         # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
+
+        delete_sql_table(connection)
 
         for company_name in company_names:
             iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
@@ -186,7 +185,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'Script Summary - BC_FIN_GLE_U',
+            'Script Summary - BC_FIN_GLE',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

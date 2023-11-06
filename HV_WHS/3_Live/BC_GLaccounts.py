@@ -1,22 +1,24 @@
 import requests
 import pyodbc
 import json
-import _AUTH
-import _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
 
+import sys
+sys.path.append('C:/HV-WHS')
+import _AUTH
+import _DEF 
+
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.BC_Customers"
+sql_table = "dbo.BC_GLaccounts"
 print("SQL Server connection string created")
 
-
 # API endpoint URL (same as before) -> aanvullen
-api_url = _AUTH.end_REST_MS_BC
-api_table = "customers"
+api_url = _AUTH.end_REST_BOLTRICS_BC
+api_table = "generalLedgerAccounts"
 api_full = api_url + "/" + api_table + "?company="
 
 # Delete function
@@ -33,36 +35,73 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [@odata.etag],
-            [id],
-            [number],
-            [displayName],
-            [type],
-            [addressLine1],
-            [addressLine2],
-            [city],
-            [state],
-            [country],
-            [postalCode],
-            [phoneNumber],
-            [email],
-            [website],
-            [salespersonCode],
-            [balanceDue],
-            [creditLimit],
-            [taxLiable],
-            [taxAreaId],
-            [taxAreaDisplayName],
-            [taxRegistrationNumber],
-            [currencyId],
-            [currencyCode],
-            [paymentTermsId],
-            [shipmentMethodId],
-            [paymentMethodId],
-            [blocked],
-            [lastModifiedDateTime],
-            [Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            [etag]
+            ,[id]
+            ,[systemCreatedAt]
+            ,[systemCreatedBy]
+            ,[systemModifiedAt]
+            ,[systemModifiedBy]
+            ,[no]
+            ,[name]
+            ,[searchName]
+            ,[accountType]
+            ,[globalDimension1Code]
+            ,[globalDimension2Code]
+            ,[accountCategory]
+            ,[incomeBalance]
+            ,[debitCredit]
+            ,[no2]
+            ,[comment]
+            ,[blocked]
+            ,[directPosting]
+            ,[reconciliationAccount]
+            ,[newPage]
+            ,[noOfBlankLines]
+            ,[indentation]
+            ,[lastModifiedDateTime]
+            ,[lastDateModified]
+            ,[balanceAtDate]
+            ,[netChange]
+            ,[budgetedAmount]
+            ,[totaling]
+            ,[balance]
+            ,[budgetAtDate]
+            ,[consolTranslationMethod]
+            ,[consolDebitAcc]
+            ,[consolCreditAcc]
+            ,[genPostingType]
+            ,[genBusPostingGroup]
+            ,[genProdPostingGroup]
+            ,[debitAmount]
+            ,[creditAmount]
+            ,[automaticExtTexts]
+            ,[budgetedDebitAmount]
+            ,[budgetedCreditAmount]
+            ,[taxAreaCode]
+            ,[taxLiable]
+            ,[taxGroupCode]
+            ,[vatBusPostingGroup]
+            ,[vatProdPostingGroup]
+            ,[vatAmt]
+            ,[additionalCurrencyNetChange]
+            ,[addCurrencyBalanceAtDate]
+            ,[additionalCurrencyBalance]
+            ,[exchangeRateAdjustment]
+            ,[addCurrencyDebitAmount]
+            ,[addCurrencyCreditAmount]
+            ,[defaultICPartnerGLAccNo]
+            ,[accountSubcategoryEntryNo]
+            ,[accountSubcategoryDescript]
+            ,[costTypeNo]
+            ,[defaultDeferralTemplateCode]
+            ,[apiAccountType]
+            ,[omitDefaultDescrInJnl]
+            ,[availableForPurchase3PL]
+            ,[availableForSales3PL]
+            ,[pictureMediaEditLink]
+            ,[pictureMediaReadLink]
+            ,[Entity]
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?)
     """
 
     for item in data:
@@ -74,7 +113,6 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-
     print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
@@ -142,7 +180,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_customers',
+            'HV-WHS / Script Summary - BC_FIN_GLaccounts',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

@@ -2,7 +2,7 @@ import requests
 import pyodbc
 import json
 import _AUTH
-import _DEF
+import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
@@ -10,15 +10,16 @@ import time
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.VS_Fixtures"
+sql_table = "dbo.VSVoyages"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_veson
-api_table = "Fixtures_WHS_HV_LC"
+api_table = "Fixtures_WHS_HV"
 api_full = api_url + "/" + api_table + _AUTH.vs_token
 
 # Delete function
 def delete_sql_table(connection):
+    print("Deleting SQL table")
     cursor = connection.cursor()
     cursor.execute(f"DELETE FROM {sql_table}")
     connection.commit()
@@ -27,49 +28,27 @@ def delete_sql_table(connection):
 def insert_data_into_sql(connection, data, sql_table):
     cursor = connection.cursor()
 
+    # Extract column names from the first row of the data
+    column_names = data[0].keys()
+
+    # SQL insert statement
     sql_insert = f"""
-        INSERT INTO {sql_table} (
-            [@odata.etag],
-            [id],
-            [number],
-            [displayName],
-            [type],
-            [addressLine1],
-            [addressLine2],
-            [city],
-            [state],
-            [country],
-            [postalCode],
-            [phoneNumber],
-            [email],
-            [website],
-            [salespersonCode],
-            [balanceDue],
-            [creditLimit],
-            [taxLiable],
-            [taxAreaId],
-            [taxAreaDisplayName],
-            [taxRegistrationNumber],
-            [currencyId],
-            [currencyCode],
-            [paymentTermsId],
-            [shipmentMethodId],
-            [paymentMethodId],
-            [blocked],
-            [lastModifiedDateTime],
-            [Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO {sql_table} ({", ".join(column_names)})
+        VALUES ({", ".join(["?" for _ in column_names])})
     """
 
-    for item in data:
-        values = list(item.values())
+    # Insert each row of data into the SQL table
+    for row in data:
+        values = list(row.values())
+        print(values)  # Print the values being inserted
         cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
+
    
 if __name__ == "__main__":
-
+    print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -79,16 +58,17 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         connection = pyodbc.connect(connection_string)
-
+        print("Establishing SQL Server connection")
         delete_sql_table(connection)
 
         api = f"{api_full}"  # No need to append company_name
-        api_data_generator = _DEF.make_api_request(api)  # Update function call according to the new signature
+        api_data_generator = _DEF.make_api_request_vs(api)  # Update function call according to the new signature
 
         try:
             if api_data_generator:
                 iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
                 for api_data in api_data_generator:
+                    #print(f"Processing data")
                     #print(f"Type of api_data: {type(api_data)}")  # Debugging print statement
                     insert_data_into_sql(connection, [api_data], sql_table)
                     rows_inserted += 1 
@@ -98,6 +78,7 @@ if __name__ == "__main__":
             failures.append(str(e))
 
     finally:
+        print("Closing SQL Server connection")
         connection.close()
         end_time = time.time()  # Record end time
         duration = (end_time - start_time) / 60  # Calculate duration

@@ -2,7 +2,7 @@ import requests
 import pyodbc
 import json
 import _AUTH
-import _DEF
+import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time

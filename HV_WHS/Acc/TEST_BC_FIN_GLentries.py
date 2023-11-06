@@ -2,7 +2,7 @@ import requests
 import pyodbc
 import json
 import _AUTH
-import _DEF
+import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
@@ -10,121 +10,145 @@ import time
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.BC_GLentries"
-print("SQL Server connection string created")
+sql_table = "dbo.BC_GLE_TEST3"
 
 # API endpoint URL (same as before) -> aanvullen
-api_url = _AUTH.end_REST_BOLTRICS_BC
+api_url = _AUTH.end_REST_BC
 api_table = "generalLedgerEntries"
 api_full = api_url + "/" + api_table + "?company="
 
-# Delete function
+# delete function SQL table
 def delete_sql_table(connection):
-    print("Deleting SQL table")
     cursor = connection.cursor()
     cursor.execute(f"DELETE FROM {sql_table}")
     connection.commit()
 
+def validate_numeric_value(value, max_size):
+    try:
+        if abs(value) > max_size:
+            # Log an error or handle the large value as needed
+            print(f"Value {value} is too large. Maximum allowed is {max_size}.")
+            # You can truncate the value, set it to a default value, or skip the record
+            value = max_size  # Truncate to the maximum allowed value
+    except TypeError:
+        # Handle non-numeric values as needed
+        pass
+    return value
+
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
-    
     cursor = connection.cursor()
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [@odata.etag]
-            ,[id]
-            ,[systemCreatedAt]
-            ,[systemCreatedBy]
-            ,[systemModifiedAt]
-            ,[systemModifiedBy]
-            ,[entryNo]
-            ,[gLAccountNo]
-            ,[postingDate]
-            ,[documentType]
-            ,[documentNo]
-            ,[description]
-            ,[balAccountNo]
-            ,[amount]
-            ,[globalDimension1Code]
-            ,[globalDimension2Code]
-            ,[userID]
-            ,[sourceCode]
-            ,[systemCreatedEntry]
-            ,[priorYearEntry]
-            ,[jobNo]
-            ,[quantity]
-            ,[vatAmount]
-            ,[businessUnitCode]
-            ,[journalBatchName]
-            ,[reasonCode]
-            ,[genPostingType]
-            ,[genBusPostingGroup]
-            ,[genProdPostingGroup]
-            ,[balAccountType]
-            ,[transactionNo]
-            ,[debitAmount]
-            ,[creditAmount]
-            ,[documentDate]
-            ,[externalDocumentNo]
-            ,[sourceType]
-            ,[sourceNo]
-            ,[noSeries]
-            ,[taxAreaCode]
-            ,[taxLiable]
-            ,[taxGroupCode]
-            ,[useTax]
-            ,[vatBusPostingGroup]
-            ,[vatProdPostingGroup]
-            ,[additionalCurrencyAmount]
-            ,[addCurrencyDebitAmount]
-            ,[addCurrencyCreditAmount]
-            ,[closeIncomeStatementDimID]
-            ,[icPartnerCode]
-            ,[reversed]
-            ,[reversedByEntryNo]
-            ,[reversedEntryNo]
-            ,[gLAccountName]
-            ,[journalTemplName]
-            ,[dimensionSetID]
-            ,[shortcutDimension3Code]
-            ,[shortcutDimension4Code]
-            ,[shortcutDimension5Code]
-            ,[shortcutDimension6Code]
-            ,[shortcutDimension7Code]
-            ,[shortcutDimension8Code]
-            ,[lastDimCorrectionEntryNo]
-            ,[lastDimCorrectionNode]
-            ,[dimensionChangesCount]
-            ,[prodOrderNo]
-            ,[faEntryType]
-            ,[faEntryNo]
-            ,[comment]
-            ,[accountId]
-            ,[lastModifiedDateTime]
-            ,[documentLineNo3PL]
-            ,[wmsDocumentType]
-            ,[wmsDocumentNo]
-            ,[wmsDocumentLineNo]
-            ,[tmsDocumentType]
-            ,[tmsDocumentNo]
-            ,[tmsDocumentSequenceNo]
-            ,[tmsDocumentLineNo]
-            ,[ultimo]
-            ,[Entity]
+            [odata_etag],
+            [id],
+            [system_created_at],
+            [system_created_by],
+            [system_modified_at],
+            [system_modified_by],
+            [entry_no],
+            [gl_account_no],
+            [posting_date],
+            [document_type],
+            [document_no],
+            [description],
+            [bal_account_no],
+            [amount],
+            [global_dimension1_code],
+            [global_dimension2_code],
+            [user_id],
+            [source_code],
+            [system_created_entry],
+            [prior_year_entry],
+            [job_no],
+            [quantity],
+            [vat_amount],
+            [business_unit_code],
+            [journal_batch_name],
+            [reason_code],
+            [gen_posting_type],
+            [gen_bus_posting_group],
+            [gen_prod_posting_group],
+            [bal_account_type],
+            [transaction_no],
+            [debit_amount],
+            [credit_amount],
+            [document_date],
+            [external_document_no],
+            [source_type],
+            [source_no],
+            [no_series],
+            [tax_area_code],
+            [tax_liable],
+            [tax_group_code],
+            [use_tax],
+            [vat_bus_posting_group],
+            [vat_prod_posting_group],
+            [additional_currency_amount],
+            [add_currency_debit_amount],
+            [add_currency_credit_amount],
+            [close_income_statement_dim_id],
+            [ic_partner_code],
+            [reversed],
+            [reversed_by_entry_no],
+            [reversed_entry_no],
+            [gl_account_name],
+            [journal_templ_name],
+            [dimension_set_id],
+            [shortcut_dimension3_code],
+            [shortcut_dimension4_code],
+            [shortcut_dimension5_code],
+            [shortcut_dimension6_code],
+            [shortcut_dimension7_code],
+            [shortcut_dimension8_code],
+            [last_dim_correction_entry_no],
+            [last_dim_correction_node],
+            [dimension_changes_count],
+            [prod_order_no],
+            [fa_entry_type],
+            [fa_entry_no],
+            [comment],
+            [account_id],
+            [last_modified_date_time],
+            [document_line_no3pl],
+            [wms_document_type],
+            [wms_document_no],
+            [wms_document_line_no],
+            [tms_document_type],
+            [tms_document_no],
+            [tms_document_sequence_no],
+            [tms_document_line_no],
+            [ultimo],
+            [Entity]  
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
+    sql_check_exists = f"""
+        SELECT 1 FROM {sql_table}
+        WHERE [id] = ? AND [Entity] = ?
+    """
+
     for item in data:
+        # Validate numeric values before inserting
+        numeric_column_names = ['amount', 'debit_amount', 'credit_amount', 'additional_currency_amount', 'add_currency_debit_amount', 'add_currency_credit_amount']  # List of numeric columns to validate
+        max_numeric_size = 1e10  # Maximum allowed value for numeric columns
+        for col in numeric_column_names:
+            if col in item:
+                item[col] = validate_numeric_value(item[col], max_numeric_size)
+        
         values = list(item.values())
-        values.append(company_name)  # add company name to the list of values
-        cursor.execute(sql_insert, tuple(values))
+        entity_id = item.get('id')
+        if entity_id is not None:
+            cursor.execute(sql_check_exists, (entity_id, company_name))
+            if cursor.fetchone() is None:
+                values.append(company_name)  # add company name to the list of values
+                cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
-   
 if __name__ == "__main__":
-    print("Script started")
+
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -134,16 +158,14 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         #connection1 = pyodbc.connect(connection_string2)
-        print("Establishing SQL Server connection")
         connection = pyodbc.connect(connection_string)
 
         # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
 
-        delete_sql_table(connection)
+        #delete_sql_table(connection)
 
         for company_name in company_names:
-            print(f"Processing company: {company_name}")
             iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
             api = f"{api_full}{company_name}"  
             access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)  
@@ -167,7 +189,7 @@ if __name__ == "__main__":
 
 
     finally:
-        print("Closing SQL Server connection")
+        
         connection.close()
         end_time = time.time()  # Record end time
         duration = (end_time - start_time )/60 # Calculate duration
@@ -190,7 +212,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'Script Summary - BC_FIN_GLE',
+            'Script Summary',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,
