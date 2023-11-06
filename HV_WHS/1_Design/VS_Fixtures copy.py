@@ -1,11 +1,14 @@
 import requests
 import pyodbc
 import json
-import _AUTH
-import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
+
+import sys
+sys.path.append('C:/HV-WHS')
+import _AUTH
+import _DEF 
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"

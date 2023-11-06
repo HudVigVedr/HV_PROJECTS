@@ -1,16 +1,19 @@
 import requests
 import pyodbc
 import json
-import _AUTH
-import _DEF as _DEF
 import smtplib
 from email.mime.text import MIMEText
 import time
 
+import sys
+sys.path.append('C:/HV-PROJECTS')
+import _AUTH
+import _DEF 
+
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 #connection_string2 = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER=HV-db;DATABASE=Staging;UID=hheij;PWD=ByMus&060R6f"
-sql_table = "dbo.VSVoyages"
+sql_table = "dbo.VS_voyages"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_veson
