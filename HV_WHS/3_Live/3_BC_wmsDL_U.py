@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 import time
 import sys
-sys.path.append('H:/HV-PROJECTS')
+sys.path.append('H:/HV_PROJECTS')
 import _AUTH
 import _DEF 
 

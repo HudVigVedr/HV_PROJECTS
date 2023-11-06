@@ -6,20 +6,18 @@ from email.mime.text import MIMEText
 import time
 
 import sys
-sys.path.append('H:/HV-PROJECTS')
+sys.path.append('C:/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-
-sql_table = "dbo.BC_Customers"
+sql_table = "dbo.BC_Vendors"
 print("SQL Server connection string created")
-
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_MS_BC
-api_table = "customers"
+api_table = "vendors"
 api_full = api_url + "/" + api_table + "?company="
 
 # Delete function
@@ -36,36 +34,31 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [@odata.etag],
-            [id],
-            [number],
-            [displayName],
-            [type],
-            [addressLine1],
-            [addressLine2],
-            [city],
-            [state],
-            [country],
-            [postalCode],
-            [phoneNumber],
-            [email],
-            [website],
-            [salespersonCode],
-            [balanceDue],
-            [creditLimit],
-            [taxLiable],
-            [taxAreaId],
-            [taxAreaDisplayName],
-            [taxRegistrationNumber],
-            [currencyId],
-            [currencyCode],
-            [paymentTermsId],
-            [shipmentMethodId],
-            [paymentMethodId],
-            [blocked],
-            [lastModifiedDateTime],
-            [Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            [@odata.etag]
+            ,[id]
+            ,[number]
+            ,[displayName]
+            ,[addressLine1]
+            ,[addressLine2]
+            ,[city]
+            ,[state]
+            ,[country]
+            ,[postalCode]
+            ,[phoneNumber]
+            ,[email]
+            ,[website]
+            ,[taxRegistrationNumber]
+            ,[currencyId]
+            ,[currencyCode]
+            ,[irs1099Code]
+            ,[paymentTermsId]
+            ,[paymentMethodId]
+            ,[taxLiable]
+            ,[blocked]
+            ,[balance]
+            ,[lastModifiedDateTime]
+            ,[Entity]
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     for item in data:
@@ -77,7 +70,6 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-
     print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
@@ -145,7 +137,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_customers',
+            'HV-WHS / Script Summary - BC_vendors',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

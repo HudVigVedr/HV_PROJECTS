@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 import time
 
 import sys
-sys.path.append('H:/HV-PROJECTS')
+sys.path.append('C:/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
