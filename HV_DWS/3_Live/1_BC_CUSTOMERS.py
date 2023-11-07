@@ -5,10 +5,23 @@ import smtplib
 from email.mime.text import MIMEText
 import time
 
+'''
 import sys
 sys.path.append('C:/HV_PROJECTS')
 import _AUTH
 import _DEF 
+'''
+import sys
+import os
+
+# Add the parent directory of HV_PROJECTS to sys.path
+script_dir = os.path.dirname(__file__)  # Get the directory where the script is located
+parent_dir = os.path.dirname(script_dir)  # Get the parent directory
+sys.path.insert(0, parent_dir)
+
+from HV_PROJECTS import _DEF
+from HV_PROJECTS import _AUTH
+
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
