@@ -22,16 +22,16 @@ api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "wmsDocumentHeaders"
 api_full = api_url + "/" + api_table + "?" + "$select=announcedDate,announcedTime,arrivedDate,arrivedTime,attribute01,attribute02,attribute03,attribute04,attribute05,attribute06,attribute07,attribute08,attribute09,attribute10,billToCustomerName,billToCustomerNo,createdDateTime,createdUserID,deliveryDate,departedDate,documentDate,documentType,estimatedDepartureDate,id,modifiedDateTime,modifiedUserID,movementType,no,portFromName,portToName,postingDate,sellToCustomerName,sellToCustomerNo,shortcutDimension2Code,statusCode,vesselNo,voyageNo&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
 
+# Function to check if a record exists based on [No]
+def record_exists(cursor, no, sql_table):
+    cursor.execute(f"SELECT COUNT(1) FROM {sql_table} WHERE [No] = ?", no)
+    return cursor.fetchone()[0] > 0
+
+# Function to delete a record based on [No]
+def delete_record(cursor, no, sql_table):
+    cursor.execute(f"DELETE FROM {sql_table} WHERE [No] = ?", no)
 
 
-# Delete function
-def delete_sql_table(connection):
-    print("Deleting SQL table")
-    cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {sql_table}")
-    connection.commit()
-
-# Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
     
     cursor = connection.cursor()
@@ -79,71 +79,14 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
             ,[Entity]
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
- # SQL Query to update an existing record
-    sql_update = f"""
-        UPDATE {sql_table} (
-            [ODataEtag]
-            ,[Id]
-            ,[DocumentType]
-            ,[No]
-            ,[SellToCustomerNo]
-            ,[SellToCustomerName]
-            ,[BillToCustomerNo]
-            ,[BillToCustomerName]
-            ,[VoyageNo]
-            ,[MovementType]
-            ,[DocumentDate]
-            ,[PostingDate]
-            ,[StatusCode]
-            ,[CreatedDateTime]
-            ,[CreatedUserID]
-            ,[ModifiedDateTime]
-            ,[ModifiedUserID]
-            ,[AnnouncedDate]
-            ,[AnnouncedTime]
-            ,[ArrivedDate]
-            ,[ArrivedTime]
-            ,[DepartedDate]
-            ,[DeliveryDate]
-            ,[EstimatedDepartureDate]
-            ,[VesselNo]
-            ,[ShortcutDimension2Code]
-            ,[Attribute01]
-            ,[Attribute02]
-            ,[Attribute03]
-            ,[Attribute04]
-            ,[Attribute05]
-            ,[Attribute06]
-            ,[Attribute07]
-            ,[Attribute08]
-            ,[Attribute09]
-            ,[Attribute10]
-            ,[PortFromName]
-            ,[PortToName]
-            ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-    
-
-    sql_check_exists = f"""
-        SELECT 1 FROM {sql_table}
-        WHERE [No] = ? AND [Entity] = ?
-    """
-
 
     for item in data:
-        values = list(item.values())
-        entity_id = item.get('No')
-        values.append(company_name)  # Add company name to the list of values
+        if record_exists(cursor, item['No'], sql_table):
+            delete_record(cursor, item['No'], sql_table)
 
-        # Check if the record exists
-        cursor.execute(sql_check_exists, (entity_id, company_name))
-        if cursor.fetchone():
-            # Record exists, perform an update
-            cursor.execute(sql_update, (*values, entity_id, company_name))
-        else:
-            # Record does not exist, perform an insert
-            cursor.execute(sql_insert, tuple(values))
+        values = list(item.values())
+        values.append(company_name)  # add company name to the list of values
+        cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
