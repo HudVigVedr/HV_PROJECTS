@@ -24,7 +24,7 @@ def count_rows(api_data_generator):
 
    
 if __name__ == "__main__":
-    print("Script started")
+    print("Checking errors CL...")
     connection = pyodbc.connect(connection_string)
     threshold = 0  # Set the threshold
     companies_above_threshold = []  # List to hold companies above the threshold
@@ -35,7 +35,6 @@ if __name__ == "__main__":
         company_names = _DEF.get_company_names(connection)
 
         for company_name in company_names:
-            print(f"Processing company: {company_name}")
             api = f"{api_full}{company_name}"
             access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
