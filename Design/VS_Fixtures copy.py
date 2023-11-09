@@ -7,7 +7,7 @@ import time
 import csv
 
 import sys
-sys.path.append('C:/HV_PROJECTS')
+sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 

@@ -1,7 +1,7 @@
 
 import configparser
 config = configparser.ConfigParser()
-config.read('C:/HV_PROJECTS/config.ini')
+config.read('C:/Python/HV_PROJECTS/config.ini')
 
 
 # OAuth2 credentials (same as before)
