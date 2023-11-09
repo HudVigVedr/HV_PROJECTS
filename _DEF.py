@@ -91,24 +91,10 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
             next_link = None
 
 
-def make_api_request_vs(api_base, params=None):
-    if params is None:
-        params = {}
-    headers = {
-        'Content-Type':'text/csv'
-    }
-    response = requests.get(api_base, headers=headers, params=params)
-    try:
-        response.raise_for_status()  # Check for HTTP error status
-        reader = csv.DictReader(io.StringIO(response.text))
-        data = list(reader)
-        
-        return data
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP error making API request: {e}")
-    except Exception as e:
-        print(f"Error making API request: {e}")
-
+def make_api_request_vs(url):
+    response = requests.get(url)
+    response.raise_for_status()  # Will raise an error for bad status codes
+    return response.text
 
 
 def get_yesterday_date():
