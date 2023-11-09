@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 import pythoncom
 
 import sys
-sys.path.append('C:/HV-WHS')
+sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 
 def delete_old_files(destination_folder):
