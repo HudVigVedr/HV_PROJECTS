@@ -111,3 +111,17 @@ def insert_data_into_sql(connection, data, table):
     column_names = data[0].keys()
     placeholders = ', '.join(['?'] * len(column_names))
     sql_insert = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({placeholders})"
+
+
+
+def count_rows(api_data_generator):
+    """Count the number of rows in the API data generator"""
+    return sum(1 for _ in api_data_generator)
+
+
+def log_status(connection, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name):
+    """Log the status (success or error) into the dbo.Log table"""
+    cursor = connection.cursor()
+    sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name)
+    connection.commit()

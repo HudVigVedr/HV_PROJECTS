@@ -10,14 +10,17 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "Errors in CL"
+script_name = "Errors in JobQuee"
 script_cat = "Errors_BC"
 
 
 # API endpoint URL (same as before) -> aanvullen
-api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "diMessages"
-api_full = api_url + "/" + api_table + "?$filter=(status eq 'Failed') and contains(messageType, 'CDM')&company="
+api_url = _AUTH.end_Odata_BC
+api_table = "JQ_erorrs"
+api_full = api_url + "/Company('"
+api_full2 = "')/" + api_table + "?$select=Status,User_ID,Object_Type_to_Run,Object_ID_to_Run,Object_Caption_to_Run,3PL_Task_No,Description,Job_Queue_Category_Code&$filter=Status%20eq%20%27Error%27"
+
+
 
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
@@ -25,7 +28,7 @@ connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server}
 
 
 if __name__ == "__main__":
-    print("Checking errors CL in BC...")
+    print("Checking errors jobques in BC...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 
@@ -36,7 +39,7 @@ if __name__ == "__main__":
         company_names = _DEF.get_company_names(connection)
 
         for company_name in company_names:
-            api = f"{api_full}{company_name}"
+            api = f"{api_full}{company_name}{api_full2}"
             access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
             if access_token:
