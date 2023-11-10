@@ -12,6 +12,10 @@ import sys
 sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 
+script_name = "Refresh finance excels"
+script_cat = "Finance"
+
+
 def delete_old_files(destination_folder):
     current_date = datetime.datetime.now()
     retention_period = datetime.timedelta(days=31)

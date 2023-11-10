@@ -10,6 +10,8 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
+script_name = "BC_customers"
+script_cat = "DWH"
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
