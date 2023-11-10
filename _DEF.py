@@ -119,9 +119,9 @@ def count_rows(api_data_generator):
     return sum(1 for _ in api_data_generator)
 
 
-def log_status(connection, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name):
+def log_status(connection, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi):
     """Log the status (success or error) into the dbo.Log table"""
     cursor = connection.cursor()
-    sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name)
+    sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name, URi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
