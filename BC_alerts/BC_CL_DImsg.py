@@ -18,7 +18,7 @@ script_cat = "Errors_BC"
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "diMessages"
 api_full = api_url + "/" + api_table + "?$filter=(status eq 'Failed') and contains(messageType, 'CDM')&company="
-bc_page = "&page=11242113&dc=0&bookmark=12_RsSqAACLAQAAAACHLe0D"
+bc_page = "&page=11242113"
 
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 

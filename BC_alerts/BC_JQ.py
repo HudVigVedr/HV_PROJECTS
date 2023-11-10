@@ -19,7 +19,7 @@ api_url = _AUTH.end_Odata_BC
 api_table = "JQ_erorrs"
 api_full = api_url + "/Company('"
 api_full2 = "')/" + api_table + "?$select=Object_ID_to_Run,Object_Caption_to_Run,Status&$filter=Status eq 'Error'"
-bc_page = "&page=672&dc=0&bookmark=18_2AEAAACRx78W2GxXFUOUiF34C9huLw"
+bc_page = "&page=672"
 
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 

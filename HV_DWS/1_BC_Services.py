@@ -62,80 +62,47 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
+    print("Copying BC_wmsServices...")
+    connection = pyodbc.connect(connection_string)
+    threshold = 0
 
-    print("Script started")
-    start_time = time.time()  # Record start time
-    rows_inserted = 0  # Initialize counter for rows inserted
-    successes = []  # List to hold successful company names
-    failures = []  # List to hold failed company names
-    rows_inserted_per_iteration = {}  # Dictionary to hold rows inserted per iteration
+    start_time = _DEF.datetime.now()
+    overall_status = "Success"
+    total_inserted_rows = 0
 
     try:
-        # Establish the SQL Server connection
-        #connection1 = pyodbc.connect(connection_string2)
-        print("Establishing SQL Server connection")
-        connection = pyodbc.connect(connection_string)
-
-        # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
 
         delete_sql_table(connection)
 
         for company_name in company_names:
-            print(f"Processing company: {company_name}")
-            iteration_rows_inserted = 0  # Initialize counter for rows inserted in this iteration
-            api = f"{api_full}{company_name}"  
-            access_token = _DEF.get_access_token(_AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)  
+            api = f"{api_full}{company_name}"
+            api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
-            if access_token:
-                api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            data_to_insert = list(api_data_generator)
+            row_count = len(data_to_insert)
 
-            try:
-                if api_data_generator:
-                    for api_data in api_data_generator:
-                        #print(f"Type of api_data: {type(api_data)}")  # Debugging print statement
-                        insert_data_into_sql(connection, [api_data], sql_table, company_name)
-                        rows_inserted += 1 
-                        iteration_rows_inserted += 1  # Increment rows_inserted
+            if row_count > threshold:
+                insert_data_into_sql(connection, data_to_insert, sql_table, company_name)
+                inserted_rows = _DEF.count_rows(data_to_insert)  # Assuming all rows are successfully inserted
+                total_inserted_rows += inserted_rows
 
-                    successes.append(company_name)  # Record successful iteration
-                    rows_inserted_per_iteration[company_name] = iteration_rows_inserted  # Record rows inserted in this iteration
+                if inserted_rows != row_count:
+                    overall_status = "Error"
+                    error_details = f"Expected to insert {row_count} rows, but only {inserted_rows} were inserted."
+                    _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), row_count - inserted_rows, error_details, company_name, api)
 
-            except Exception as e:
-                failures.append((company_name, str(e)))
-
+    except Exception as e:
+        overall_status = "Error"
+        error_details = str(e)
+        print(f"An error occurred: {e}")
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "None", "N/A")
 
     finally:
-        print("Closing SQL Server connection")
-        connection.close()
-        end_time = time.time()  # Record end time
-        duration = (end_time - start_time )/60 # Calculate duration
-        duration_minutes_rounded = round(duration, 2)
+        if overall_status == "Success":
+            success_message = f"Script executed successfully. Total rows inserted: {total_inserted_rows}."
+            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), total_inserted_rows, success_message, "All", "N/A")
 
-        # Print results
-        print(f"Total rows inserted: {rows_inserted}")
-        print(f"Total time taken: {duration} minutes")
-
-        
-        # Prepare email content
-        email_body = f"The script completed in {duration_minutes_rounded} minutes with {rows_inserted} total rows inserted.\n\n"
-        if successes:
-            email_body += "Successes:\n" + "\n".join(successes) + "\n\n"
-        if failures:
-            email_body += "Failures:\n" + "\n".join(f"{company}: {error}" for company, error in failures)
-
-        # Include rows inserted per iteration in email
-        for company, rows in rows_inserted_per_iteration.items():
-            email_body += f"Rows inserted for {company}: {rows}\n"
-
-        # Send email
-        _DEF.send_email(
-            'HV-WHS / Script Summary - BC_Services',
-            email_body,
-            _AUTH.email_recipient,
-            _AUTH.email_sender,
-            _AUTH.smtp_server,
-            _AUTH.smtp_port,
-            _AUTH.email_username,
-            _AUTH.email_password
-        )
+        elif overall_status == "Error":
+            # Additional logging for error scenario can be added here if needed
+            pass

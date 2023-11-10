@@ -7,14 +7,17 @@ import logging
 import win32com.client as win32
 from email.mime.text import MIMEText
 import pythoncom
+import pyodbc
 
 import sys
 sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
+import _DEF
 
 script_name = "Refresh finance excels"
-script_cat = "Finance"
+script_cat = "FIN"
 
+connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
 def delete_old_files(destination_folder):
     current_date = datetime.datetime.now()
@@ -80,7 +83,7 @@ def refresh_and_copy_filesC(folder_path, destination_folder):
 
     # Quit the Excel application
     os.system("taskkill /f /im EXCEL.EXE")
-    #win32.pythoncom.CoUninitialize()
+
 
     # After all files have been refreshed, start copying them one by one
     for file_path, destination_path in refreshed_files:
@@ -143,8 +146,6 @@ def refresh_and_copy_files(folder_path, destination_folder):
     # Quit the Excel application
     time.sleep(5) 
     excel.Quit()
-    #os.system("taskkill /f /im EXCEL.EXE")
-    #win32.pythoncom.CoUninitialize()
 
     # After all files have been refreshed, start copying them one by one
     for file_path, destination_path in refreshed_files:
@@ -159,126 +160,87 @@ def refresh_and_copy_files(folder_path, destination_folder):
     return successful_files, error_files
 
 
-def send_email(successful_files, error_files, start_time, end_time, execution_time, sender_email, receiver_email,
-               smtp_server, smtp_port, smtp_username, smtp_password):
-    # Send email notification for successful execution
-    if successful_files:
-        subject = "FS - success"
-        message = "The script has successfully executed. Copied and protected files:\n\n"
-        message += "\n".join(successful_files)
-        message += f"\n\nScript started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}"  # add start time
-        message += f"\nScript ended at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}"  # add end time
-        message += f"\nScript execution time: {execution_time}"  # add execution time
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-
-    # Send email notification for error cases
-    if error_files:
-        subject = "FS - error"
-        message = "An error occurred while processing the following files:\n\n"
-        for file_name, error in error_files:
-            message += f"File: {file_name}\nError: {error}\n\n"
-        message += f"\n\nScript started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}"  # add start time
-        message += f"\nScript ended at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}"  # add end time
-        message += f"\nScript execution time: {execution_time}"  # add execution time
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-
-
 if __name__ == "__main__":
 
     # Configure logging
-    logging.basicConfig(filename='logB.log', level=logging.DEBUG)
+    logging.basicConfig(filename='log.log', level=logging.DEBUG)
     logger = logging.getLogger(__name__)
+
+    connection = pyodbc.connect(connection_string)
 
     # Capture the start time
     start_time = datetime.datetime.now()
 
-    # Determine the start and end dates for file retention
-    #retention_start_date, retention_end_date = calculate_retention_dates()
-
-    # Email configuration
-    sender_email = _AUTH.email_sender
-    receiver_email = _AUTH.email_recipient
-    smtp_server = "smtp.office365.com"
-    smtp_port = 587
-    smtp_username = _AUTH.email_username
-    smtp_password = _AUTH.email_password
-
     #Folder A
-    #folder_pathA = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\Live\A'
-    #destination_folderA = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\TestAutomation\A'
     folder_pathA = r'C:\Users\beheerder\Hudig & Veder\Rapportage - Live\A'
     destination_folderA = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\A'
 
     #Folder B
-    #folder_pathB = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\Live\B'
-    #destination_folderB = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\TestAutomation\B'
+
     folder_pathB = r'C:\Users\beheerder\Hudig & Veder\Rapportage - Live\B'
     destination_folderB = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\B'
 
     #Folder C
-    #folder_pathC = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\Live\C'
-    #destination_folderC = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\TestAutomation\C'
     folder_pathC = r'C:\Users\beheerder\Hudig & Veder\Rapportage - Live\C'
     destination_folderC = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\C'
     
-    #RunA
-    os.makedirs(destination_folderA, exist_ok=True)
-    delete_old_files(destination_folderA)
-    successful_files, error_files = refresh_and_copy_files(folder_pathA, destination_folderA)
+    print("Starting file processing...")
 
-    # Capture the end time
-    end_time = datetime.datetime.now()
+    # Initialize variables
+    overall_status = "Success"
+    full_uri = "N/A"  
 
-    # Calculate the script execution time
-    execution_time = str(end_time - start_time)
+    # Start timer
+    start_time = datetime.datetime.now()
 
-    # Send email notifications
-    send_email(successful_files, error_files, start_time, end_time, execution_time, sender_email, receiver_email,
-               smtp_server, smtp_port, smtp_username, smtp_password)
+    try:
+        # Define folder paths for processing
+        folders = {
+            "folderA": (folder_pathA, destination_folderA),
+            "folderB": (folder_pathB, destination_folderB),
+            "folderC": (folder_pathC, destination_folderC)
+        }
 
-    #RunB
-    os.makedirs(destination_folderB, exist_ok=True)
-    delete_old_files(destination_folderB)
-    successful_files, error_files = refresh_and_copy_files(folder_pathB, destination_folderB)
+        for folder_name, (folder_path, destination_folder) in folders.items():
+            os.makedirs(destination_folder, exist_ok=True)
+            delete_old_files(destination_folder)
 
-    # Capture the end time
-    end_time = datetime.datetime.now()
+            try:
+                # Refresh and copy files for the current folder
+                if folder_name == "folderC":
+                    successful_files, error_files = refresh_and_copy_filesC(folder_path, destination_folder)
+                else:
+                    successful_files, error_files = refresh_and_copy_files(folder_path, destination_folder)
 
-    # Calculate the script execution time
-    execution_time = str(end_time - start_time)
+                if error_files:
+                    overall_status = "Error"
+                    for file_name, error in error_files:
+                        error_details = f"Error in file {file_name}: {error}"
+                        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
+                                        datetime.datetime.now(), 
+                                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
+                                        1, error_details, folder_name, full_uri)
 
-    # Send email notifications
-    send_email(successful_files, error_files, start_time, end_time, execution_time, sender_email, receiver_email,
-               smtp_server, smtp_port, smtp_username, smtp_password)
+            except Exception as e:
+                overall_status = "Error"
+                error_details = str(e)
+                _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
+                                datetime.datetime.now(), 
+                                int((datetime.datetime.now() - start_time).total_seconds() / 60), 
+                                0, error_details, folder_name, full_uri)
 
-    #RunC
-    os.makedirs(destination_folderC, exist_ok=True)
-    delete_old_files(destination_folderC)
-    successful_files, error_files = refresh_and_copy_filesC(folder_pathC, destination_folderC)
+        if overall_status == "Success":
+            # Log a success entry if no errors were found in any folder
+            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, 
+                            datetime.datetime.now(), 
+                            int((datetime.datetime.now() - start_time).total_seconds() / 60), 
+                            0, "No errors found in any folder", "All", full_uri)
 
-
-    # Capture the end time
-    end_time = datetime.datetime.now()
-
-    # Calculate the script execution time
-    execution_time = str(end_time - start_time)
-
-    # Send email notifications
-    send_email(successful_files, error_files, start_time, end_time, execution_time, sender_email, receiver_email,
-               smtp_server, smtp_port, smtp_username, smtp_password)
+    except Exception as e:
+        # Catch-all for any unexpected errors in the script
+        overall_status = "Error"
+        error_details = str(e)
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
+                        datetime.datetime.now(), 
+                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
+                        0, error_details, "General", full_uri)
