@@ -21,7 +21,6 @@ api_url = _AUTH.end_veson
 api_table = "Fixtures_WHS_HV_LC"
 api_full = api_url + "/" + api_table + _AUTH.vs_token
 
-
 # Function to insert data into SQL Server
 def insert_data_into_sql(csv_lines):
 
@@ -42,7 +41,6 @@ def insert_data_into_sql(csv_lines):
 
    
 if __name__ == "__main__":
-    print("Script started")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -56,8 +54,6 @@ if __name__ == "__main__":
 
         api = f"{api_full}"  # No need to append company_name
         api_data_generator = _DEF.make_api_request_vs(api)  # Update function call according to the new signature
-
- 
 
         try:
             if api_data_generator:
