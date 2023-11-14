@@ -138,7 +138,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-    print("Copying BC_wmsDH...")
+    print("Copying BC_GLentries...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 

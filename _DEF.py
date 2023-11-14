@@ -29,7 +29,7 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
 # Function to get a list of companies from SQL Server
 def get_company_names(connection):
     cursor = connection.cursor()
-    cursor.execute("SELECT name FROM dbo.companies")
+    cursor.execute("SELECT name FROM dbo.companies2")
     companies = cursor.fetchall()
     
     # Extract the 'name2' values and convert them to strings
@@ -98,7 +98,7 @@ def make_api_request_vs(url):
 
 
 def get_yesterday_date():
-    yesterday = datetime.now() - timedelta(days=1)
+    yesterday = datetime.now() - timedelta(days=2)
     return yesterday.strftime('%Y-%m-%d')
 
 yesterday_date = get_yesterday_date()
