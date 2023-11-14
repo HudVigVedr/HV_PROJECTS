@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import csv
 import io
 
-
 #send mail
 def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, smtp_username, smtp_password):
     msg = MIMEText(body)
@@ -24,12 +23,10 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
     except Exception as e:
         print(f"Failed to send email: {e}")
 
-
-
 # Function to get a list of companies from SQL Server
 def get_company_names(connection):
     cursor = connection.cursor()
-    cursor.execute("SELECT name FROM dbo.companies2")
+    cursor.execute("SELECT name FROM dbo.companies")
     companies = cursor.fetchall()
     
     # Extract the 'name2' values and convert them to strings
@@ -53,8 +50,6 @@ def get_access_token(client_id, client_secret, token_url):
     except Exception as e:
         print(f"Error getting access token: {e}")
         return None
-    
-
 
 def make_api_request(api_base, client_id, client_secret, token_url, params=None):
     access_token = get_access_token(client_id, client_secret, token_url)
@@ -96,7 +91,6 @@ def make_api_request_vs(url):
     response.raise_for_status()  # Will raise an error for bad status codes
     return response.text
 
-
 def get_yesterday_date():
     yesterday = datetime.now() - timedelta(days=2)
     return yesterday.strftime('%Y-%m-%d')
@@ -112,12 +106,9 @@ def insert_data_into_sql(connection, data, table):
     placeholders = ', '.join(['?'] * len(column_names))
     sql_insert = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({placeholders})"
 
-
-
 def count_rows(api_data_generator):
     """Count the number of rows in the API data generator"""
     return sum(1 for _ in api_data_generator)
-
 
 def log_status(connection, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi):
     """Log the status (success or error) into the dbo.Log table"""
