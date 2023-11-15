@@ -13,17 +13,17 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "Check GLentries"
+script_name = "Check wmsDH"
 script_cat = "DWH"
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-sql_table = "dbo.BC_GLentries"
+sql_table = "dbo.BC_wmsDH"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "generalLedgerEntries"
+api_table = "wmsDocumentHeaders"
 api_full = api_url + "/" + api_table + "?company="
 #api_full = api_url + "/" + api_table + "?company="
 
@@ -40,7 +40,7 @@ def count_sql_rows(connection, sql_table, company_name):
     return result[0] if result else 0
 
 if __name__ == "__main__":
-    print("Comparing BC_GLentries row counts...")
+    print(f"Comparing {api_table} row counts...")
     connection = pyodbc.connect(connection_string)
     overall_status = "Success"
     total_mismatches = 0
@@ -76,4 +76,4 @@ if __name__ == "__main__":
         _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, success_message, "All", "N/A")
     else:
         error_summary = f"Total companies with mismatches or errors: {total_mismatches}."
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), "N/A", error_summary, "Multiple", "N/A")
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_summary, "Multiple", "N/A")

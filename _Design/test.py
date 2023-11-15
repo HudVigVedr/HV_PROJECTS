@@ -1,32 +1,57 @@
-import requests
-import csv
-from io import StringIO
+from office365.runtime.auth.authentication_context import AuthenticationContext
+from office365.sharepoint.client_context import ClientContext
+from office365.sharepoint.files.file import File
+import pandas as pd
+import pyodbc
+import io
 
-def make_api_request_vs(url):
-    response = requests.get(url)
-    response.raise_for_status()  # Will raise an error for bad status codes
-    return response.text
+# Importing custom authentication module
+import sys
+sys.path.append('C:/Python/HV_PROJECTS')
+import _AUTH
 
-def fetch_and_print_csv_data():
-    # Define the API endpoint and the API token
-    url = "https://api.veslink.com/v1/imos/reports/Fixtures_WHS_HV_LC?apiToken=3c1ac6db0a97436e41f8e1e7e443f0e025ed1e0edfde2df2e6c1fce557e4d7ce"
+# Local Excel file path
+file_path = r"C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\HV_WHS\Bronbestanden\Grootboekschema.xlsx"  # replace with your actual file name
+#file_path = r""  
 
+# SQL database details
+sql_connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
+table_name = 'BC_GLaccounts_mapping'
+
+def read_excel(file_path):
     try:
-        # Use the make_api_request_vs function to make the API request
-        csv_content = make_api_request_vs(url)
-
-        # Use StringIO to read the CSV data
-        csv_data = StringIO(csv_content)
-        csv_reader = csv.reader(csv_data)
-
-        # Print each row in the CSV data
-        for row in csv_reader:
-            print(row)
-
-    except requests.HTTPError as e:
-        print(f"HTTP error occurred: {e}")
+        df = pd.read_excel(file_path, engine='openpyxl')
+        return df
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while reading the Excel file: {e}")
+        return None
 
-# Call the function
-fetch_and_print_csv_data()
+# Function to import the data into SQL
+def import_to_sql(df, sql_connection_string, table_name):
+    try:
+        # Establish SQL connection
+
+        conn = pyodbc.connect(sql_connection_string)
+        cursor = conn.cursor()
+
+        # Insert data into SQL table
+        for index, row in df.iterrows():
+            cursor.execute(f"""
+                INSERT INTO {table_name} ([Ledgernummer]) 
+                values(?)""", 
+                row['Ledgernummer']
+            )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"An error occurred while inserting into SQL: {e}")
+
+# Main execution
+df = read_excel(file_path)
+if df is not None:
+    # Proceed with importing data to SQL
+    import_to_sql(df, sql_connection_string, table_name)
+else:
+    print("Failed to read data from the Excel file")

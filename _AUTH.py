@@ -32,3 +32,8 @@ smtp_server = "smtp.office365.com"
 smtp_port = 587
 email_password = config['EMAIL_CRED']['email_password']
 
+
+#Sharepoint
+sharepoint_url = "https://hudigvederbv.sharepoint.com/"
+sharepoint_username = ""
+sharepoint_password = ""
