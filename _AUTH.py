@@ -16,6 +16,7 @@ end_REST_MS_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-43
 end_Odata_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/ODataV4"
 end_veson =  "https://api.veslink.com/v1/imos/reports/"
 BC_URi = "https://businesscentral.dynamics.com/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123?company="
+BC_base = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/"
 
 # Server credentials
 server = "HV-db"
