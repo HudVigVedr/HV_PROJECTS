@@ -86,6 +86,33 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
             next_link = None
 
 
+
+def make_api_request_XML(api_base, client_id, client_secret, token_url, xml_data, headers):
+    access_token = get_access_token(client_id, client_secret, token_url)
+    headers['Authorization'] = f'Bearer {access_token}'
+    
+    try:
+        response = requests.post(api_base, headers=headers, data=xml_data)
+        response.raise_for_status()
+        return response  # Consider processing the response before returning
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 401:
+            print("Token expired. Requesting new token...")
+            access_token = get_access_token(client_id, client_secret, token_url)
+            if not access_token:
+                print("Failed to refresh token.")
+                return None
+            headers['Authorization'] = f'Bearer {access_token}'
+            return requests.post(api_base, headers=headers, data=xml_data)
+        else:
+            print(f"HTTP error making API request: {e}")
+            return None
+    except Exception as e:
+        print(f"Error making API request: {e}")
+        return None
+
+
+
 def make_api_request_vs(url):
     response = requests.get(url)
     response.raise_for_status()  # Will raise an error for bad status codes
@@ -117,3 +144,13 @@ def log_status(connection, status, Categorie, Name, start_time, end_time, time_r
     cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
 
+
+
+
+def create_soap_message(xml_data):
+    # Define the SOAP envelope template with CDATA placeholder
+    soap_template = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><PostXml xmlns="urn:microsoft-dynamics-schemas/codeunit/DIPost"><xml><![CDATA[{}
+    ]]></xml></PostXml></s:Body></s:Envelope>"""
+
+    # Insert the XML data into the CDATA section of the SOAP template
+    return soap_template.format(xml_data)

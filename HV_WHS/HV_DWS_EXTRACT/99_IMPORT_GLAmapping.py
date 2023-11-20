@@ -18,7 +18,7 @@ script_cat = "DWH"
 
 # Local Excel file path
 #file_path = r"C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\HV_WHS\Bronbestanden\Grootboekschema.xlsx"  # replace with your actual file name
-file_path = r"C:\Users\beheerder\Hudig & Veder(1)\Rapportage - Bronbestanden"  
+file_path = r"C:\Users\beheerder\Hudig & Veder(1)\Rapportage - Bronbestanden\Grootboekschema.xlsx"  
 
 # SQL database details
 sql_connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
