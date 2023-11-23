@@ -8,7 +8,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "GS files to BC -> TEST"
+script_name = "GS files to BC"
 script_cat = "GS_INT"
 
 # SQL Server connection settings
@@ -76,18 +76,24 @@ def read_csv(file_path):
 # Function to create XML data
 def create_xml_data(row_data):
     Timestamp = datetime.datetime.now()
-    DateStamp = Timestamp.strftime("%Y/%m/%d")
+    DateStamp = Timestamp.strftime("%Y-%m-%d")
     Agency = row_data["Agency"]
     Portcall = row_data["PortCallNumber"]
     Vessel = row_data["VesselName"]
     Voy = row_data["VoyageNumber"]
 
-    ETAstring = row_data["ETA"]
-    ETA = datetime.datetime.strptime(ETAstring, "%d-%m-%Y %H:%M") if ETAstring else None
+    ETAstring = str(row_data["ETA"]) if pd.notna(row_data["ETA"]) else None
+    try:
+        ETA = datetime.datetime.strptime(ETAstring, "%Y-%m-%d %H:%M") if ETAstring else None
+    except ValueError:
+        ETA = None  # Or handle the exception as needed
     ETAform = ETA.strftime("%Y-%m-%d") if ETA else ""
 
-    ETDstring = row_data["ETD"]
-    ETD = datetime.datetime.strptime(ETDstring, "%d-%m-%Y %H:%M") if ETDstring else None
+    ETDstring = str(row_data["ETD"]) if pd.notna(row_data["ETD"]) else None
+    try:
+        ETD = datetime.datetime.strptime(ETDstring, "%Y-%m-%d %H:%M") if ETDstring else None
+    except ValueError:
+        ETD = None  # Or handle the exception as needed
     ETDform = ETD.strftime("%Y-%m-%d") if ETD else ""
 
     PortFrom = row_data["LastPort"]
@@ -132,10 +138,12 @@ def send_xml_data(api_endpoint, xml_data):
 
 # Main execution
 if __name__ == "__main__":
+    print("Sending new files from Gatship to Dynamics...")
     connection = pyodbc.connect(sql_connection_string)
 
     start_time = _DEF.datetime.now()
     overall_status = "Success"
+    processed_files_count = 0  # Initialize the counter
 
     try:
         df = read_csv(csv_file_path)
@@ -146,37 +154,36 @@ if __name__ == "__main__":
             for _, row in df_filtered.iterrows():
                 company_name = row['Agency']
                 endpoint = determine_endpoint_API(company_name)
-                file_name = row['PortCallNumber'] 
+                file_name = row['PortCallNumber']
                 api_check_url = f"{endpoint}{file_name}'"
                 response_generator = _DEF.make_api_request(api_check_url, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
-                file_exists = False
+                file_exists = False  # Default assumption
                 for response_entry in response_generator:
-                    if response_entry:  # Check if response_entry is not None or empty
-                    # Here, you need to determine how to check if the file exists based on the response structure
-                    # For example, if 'file_exists' is a key in each entry:
-                        if response_entry.get('file_exists', False):
-                         file_exists = True
-                        break
+                    if response_entry and response_entry.get('value') != []:
+                        file_exists = True
+                        
 
-            if not file_exists:
-                xml_data = create_xml_data(row)
-                soap_message = _DEF.create_soap_message(xml_data) 
-                print(soap_message) # Wrap XML data in SOAP envelope
-                api_endpoint = determine_endpoint(company_name)
-                send_xml_data(api_endpoint, soap_message)
-                api_endpoint = determine_endpoint(company_name)
-                print(f"XML sent for {file_name}")
+                if not file_exists:
+                    xml_data = create_xml_data(row)
+                    soap_message = _DEF.create_soap_message(xml_data)
+                    api_endpoint = determine_endpoint(company_name)
+                    send_xml_data(api_endpoint, soap_message)
+                    processed_files_count += 1  # Increment the counter
+                    print(f"XML sent for {file_name}")
+
+        # Log the number of processed files
+        print(f"Total files processed: {processed_files_count}")
 
     except Exception as e:
         overall_status = "Error"
         error_details = str(e)
         print(f"An error occurred: {e}")
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "None", "N/A")
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), processed_files_count, error_details, "None", "N/A")
 
     finally:
         if overall_status == "Success":
-            success_message = "Script executed successfully."
-            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, success_message, "All", "N/A")
+            success_message = f"Script executed successfully. Total files processed: {processed_files_count}."
+            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), processed_files_count, success_message, "All", "N/A")
 
         connection.close()
