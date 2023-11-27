@@ -221,6 +221,17 @@ if __name__ == "__main__":
                                         int((datetime.datetime.now() - start_time).total_seconds() / 60), 
                                         1, error_details, folder_name, full_uri)
 
+                    _DEF.send_email(
+                    f"ErrorLog -> {script_name} / {script_cat}",
+                    error_details,
+                    _AUTH.email_recipient,
+                    _AUTH.email_sender,
+                    _AUTH.smtp_server,
+                    _AUTH.smtp_port,
+                    _AUTH.email_username,
+                    _AUTH.email_password
+                )
+
             except Exception as e:
                 overall_status = "Error"
                 error_details = str(e)
@@ -228,6 +239,17 @@ if __name__ == "__main__":
                                 datetime.datetime.now(), 
                                 int((datetime.datetime.now() - start_time).total_seconds() / 60), 
                                 0, error_details, folder_name, full_uri)
+                
+                _DEF.send_email(
+                f"ErrorLog -> {script_name} / {script_cat}",
+                error_details,
+                _AUTH.email_recipient,
+                _AUTH.email_sender,
+                _AUTH.smtp_server,
+                _AUTH.smtp_port,
+                _AUTH.email_username,
+                _AUTH.email_password
+                )
 
         if overall_status == "Success":
             # Log a success entry if no errors were found in any folder
@@ -244,3 +266,14 @@ if __name__ == "__main__":
                         datetime.datetime.now(), 
                         int((datetime.datetime.now() - start_time).total_seconds() / 60), 
                         0, error_details, "General", full_uri)
+
+        _DEF.send_email(
+        f"ErrorLog -> {script_name} / {script_cat}",
+        error_details,
+        _AUTH.email_recipient,
+        _AUTH.email_sender,
+        _AUTH.smtp_server,
+        _AUTH.smtp_port,
+        _AUTH.email_username,
+        _AUTH.email_password
+    )

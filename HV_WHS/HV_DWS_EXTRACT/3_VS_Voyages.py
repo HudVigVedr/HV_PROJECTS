@@ -78,7 +78,7 @@ if __name__ == "__main__":
         delete_sql_table(connection)
         total_inserted_rows = fetch_csv_and_write_to_sql(connection)
 
-        success_message = f"Script executed successfully. Total rows inserted: {total_inserted_rows}."
+        success_message = f"Total rows inserted: {total_inserted_rows}."
         _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), total_inserted_rows, success_message, "All", "N/A")
 
     except Exception as e:
@@ -86,6 +86,17 @@ if __name__ == "__main__":
         error_details = str(e)
         print(f"An error occurred: {e}")
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "All", "N/A")
+
+        _DEF.send_email(
+        f"ErrorLog -> {script_name} / {script_cat}",
+        error_details,
+        _AUTH.email_recipient,
+        _AUTH.email_sender,
+        _AUTH.smtp_server,
+        _AUTH.smtp_port,
+        _AUTH.email_username,
+        _AUTH.email_password
+        )    
 
     finally:
         if connection is not None:

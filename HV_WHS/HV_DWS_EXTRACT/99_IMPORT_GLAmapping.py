@@ -80,22 +80,45 @@ if __name__ == "__main__":
                 error_details = f"Expected to insert {len(df)} rows, but only {total_inserted_rows} were inserted."
                 _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(), int((datetime.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "N/A", "N/A")
     
+                _DEF.send_email(
+                f"ErrorLog -> {script_name} / {script_cat}",
+                error_details,
+                _AUTH.email_recipient,
+                _AUTH.email_sender,
+                _AUTH.smtp_server,
+                _AUTH.smtp_port,
+                _AUTH.email_username,
+                _AUTH.email_password
+                )    
+
     except Exception as e:
         overall_status = "Error"
         error_details = str(e)
         print(f"An error occurred: {e}")
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(), int((datetime.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "None", "N/A")
+
+        _DEF.send_email(
+        f"ErrorLog -> {script_name} / {script_cat}",
+        error_details,
+        _AUTH.email_recipient,
+        _AUTH.email_sender,
+        _AUTH.smtp_server,
+        _AUTH.smtp_port,
+        _AUTH.email_username,
+        _AUTH.email_password
+        )  
+    
     finally:
         end_time = datetime.datetime.now()
         duration = int((end_time - start_time).total_seconds() / 60)
 
         if overall_status == "Success":
-            success_message = f"Script executed successfully. Total rows inserted: {total_inserted_rows}. Duration: {duration} minutes."
+            success_message = f"Total rows inserted: {total_inserted_rows}. Duration: {duration} minutes."
             print(success_message)
             _DEF.log_status(connection, "Success", script_cat, script_name, start_time, end_time, duration, total_inserted_rows, success_message, "All", "N/A")
         else:
             error_summary = f"Script execution failed. Duration: {duration} minutes."
             print(error_summary)
-            # Additional error logging can be added here if needed
+            _DEF.log_status(connection, "Error", script_cat, script_name, start_time, end_time, duration, total_inserted_rows, error_summary, "All", "N/A")
 
         connection.close()
