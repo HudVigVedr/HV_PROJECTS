@@ -61,8 +61,20 @@ if __name__ == "__main__":
             print(error_details)
             _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(),
                             int((datetime.datetime.now() - start_time).total_seconds() / 60), total_missing_records, error_details, "None", "N/A")
+        
+            _DEF.send_email(
+            f"ErrorLog -> {script_name} / {script_cat}",
+            error_details,
+            _AUTH.email_recipient,
+            _AUTH.email_sender,
+            _AUTH.smtp_server,
+            _AUTH.smtp_port,
+            _AUTH.email_username,
+            _AUTH.email_password
+        )        
+
         else:
-            success_message = f"No missing records found. Script executed successfully. Duration: {duration} minutes."
+            success_message = f"No missing records found. Duration: {duration} minutes."
             print(success_message)
             _DEF.log_status(connection, "Success", script_cat, script_name, start_time, datetime.datetime.now(),
                             int((datetime.datetime.now() - start_time).total_seconds() / 60), 0, success_message, "All", "N/A")
@@ -72,6 +84,18 @@ if __name__ == "__main__":
         print(error_details)
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(),
                         int((datetime.datetime.now() - start_time).total_seconds() / 60), total_missing_records, error_details, "None", "N/A")
+        
+        _DEF.send_email(
+        f"ErrorLog -> {script_name} / {script_cat}",
+        error_details,
+        _AUTH.email_recipient,
+        _AUTH.email_sender,
+        _AUTH.smtp_server,
+        _AUTH.smtp_port,
+        _AUTH.email_username,
+        _AUTH.email_password
+    )             
+
     finally:
         end_time = datetime.datetime.now()
         duration = int((end_time - start_time).total_seconds() / 60)

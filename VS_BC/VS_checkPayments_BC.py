@@ -19,9 +19,9 @@ open_invoices = _AUTH.end_veson + open_table + _AUTH.vs_token
 
 
 fetch_base = _AUTH.end_REST_BOLTRICS_BC + "/"
-fetch_company = "/?company="
-fetch_filter = "&$filter=contains(postingDescription,'"
-fetch_select = "')&$select=id,no,systemModifiedAt,postingDate,postingDescription,currencyCode,currencyFactor,closed,amountIncludingVAT"
+fetch_company = "?company="
+fetch_filter = "&$filter=postingDescription eq '*"
+fetch_select = "*'&$select=id,no,systemModifiedAt,postingDate,postingDescription,currencyCode,currencyFactor,closed,amountIncludingVAT"
 
 endpoint_xml = _AUTH.vs_quee + _AUTH.end_veson
 
@@ -73,8 +73,9 @@ def fetch_invoice_details_if_open(api_full, client_id, client_secret, token_url)
         posting_description = None
         if 'postingDescription' in invoice_details:
             full_description = invoice_details['postingDescription']
-            posting_description = full_description.split('-')[2] if full_description else None
-        
+            if full_description:
+                parts = full_description.split('-')
+                posting_description = parts[-1] 
 
         # Combine all required details
         invoice_info = {
@@ -202,10 +203,10 @@ if __name__ == "__main__":
                         companyCode=company_code_xml
                     )
                     #print(xml_data)
-                    send_xml_data(endpoint_xml, xml_data)
+                    #send_xml_data(endpoint_xml, xml_data)
                     #print(invoice_no)
-                    #xml_file_path = "test_xml_data.txt"  
-                    #write_xml_to_file(xml_data, xml_file_path)
+                    xml_file_path = "test_xml_data.txt"  
+                    write_xml_to_file(xml_data, xml_file_path)
 
     except Exception as e:
         overall_status = "Error"
