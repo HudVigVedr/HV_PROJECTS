@@ -1,8 +1,0 @@
-<simplePayment><invoiceTransNo>23HNV 0001311N</invoiceTransNo><entryDate>2023-02-13</entryDate><actDate>2023-03-03</actDate><externalRefId>7d99c77c-d0b9-ed11-9c49-fea978dca226</externalRefId><payMode>WT</payMode><currencyAmount>3951.42</currencyAmount><currency>EUR</currency><baseCurrencyAmount>3951.42</baseCurrencyAmount><bankXCRate>1</bankXCRate><bankCode>19200</bankCode><companyCode>HNV BV</companyCode></simplePayment>
-
-<simplePayment><invoiceTransNo>23HNV 0005292N</invoiceTransNo><entryDate>2023-04-11</entryDate><actDate>2023-04-12</actDate><externalRefId>8d42f710-24d9-ed11-a619-efed3554c8a5</externalRefId><payMode>WT</payMode><currencyAmount>81901.88</currencyAmount><currency>EUR</currency><baseCurrencyAmount>81901.88</baseCurrencyAmount><bankXCRate>1</bankXCRate><bankCode>19200</bankCode><companyCode>HNV BV</companyCode></simplePayment>
-
-<simplePayment><invoiceTransNo>23HNV 0012576N</invoiceTransNo><entryDate>2023-05-22</entryDate><actDate>2023-06-19</actDate><externalRefId>fc116159-7c0e-ee11-bed1-d2d24da739b1</externalRefId><payMode>WT</payMode><currencyAmount>81212.18</currencyAmount><currency>EUR</currency><baseCurrencyAmount>81212.18</baseCurrencyAmount><bankXCRate>1</bankXCRate><bankCode>19200</bankCode><companyCode>HNV BV</companyCode></simplePayment>
-
-<simplePayment><invoiceTransNo>23HNV 0015751N</invoiceTransNo><entryDate>2023-06-30</entryDate><actDate>2023-07-04</actDate><externalRefId>ab135b74-5f1a-ee11-8db7-87876f44e1d3</externalRefId><payMode>WT</payMode><currencyAmount>136575.08</currencyAmount><currency>EUR</currency><baseCurrencyAmount>136575.08</baseCurrencyAmount><bankXCRate>1</bankXCRate><bankCode>19200</bankCode><companyCode>HNV BV</companyCode></simplePayment>
-
