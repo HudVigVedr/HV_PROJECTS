@@ -13,20 +13,16 @@ import _DEF
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-sql_table = "dbo.BC_Services"
+sql_table = "dbo.BC_GLentries"
 print("SQL Server connection string created")
-
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "wmsServices"
-api_full = api_url + "/" + api_table + "?" + "$select=systemModifiedAt,no,description,genProdPostingGroup,vatProdPostingGroup,modifiedUserID&company="
-
-
+api_table = "generalLedgerEntries"
+api_full = api_url + "/" + api_table + "?company="
 
 # Delete function
 def delete_sql_table(connection):
-    print("Deleting SQL table")
     cursor = connection.cursor()
     cursor.execute(f"DELETE FROM {sql_table}")
     connection.commit()
@@ -38,15 +34,87 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-            [ODataEtag]
-            ,[SystemModifiedAt]
-            ,[No]
-            ,[Description]
-            ,[GenProdPostingGroup]
-            ,[VatProdPostingGroup]
-            ,[ModifiedUserID]
+            [@odata.etag]
+            ,[id]
+            ,[systemCreatedAt]
+            ,[systemCreatedBy]
+            ,[systemModifiedAt]
+            ,[systemModifiedBy]
+            ,[entryNo]
+            ,[gLAccountNo]
+            ,[postingDate]
+            ,[documentType]
+            ,[documentNo]
+            ,[description]
+            ,[balAccountNo]
+            ,[amount]
+            ,[globalDimension1Code]
+            ,[globalDimension2Code]
+            ,[userID]
+            ,[sourceCode]
+            ,[systemCreatedEntry]
+            ,[priorYearEntry]
+            ,[jobNo]
+            ,[quantity]
+            ,[vatAmount]
+            ,[businessUnitCode]
+            ,[journalBatchName]
+            ,[reasonCode]
+            ,[genPostingType]
+            ,[genBusPostingGroup]
+            ,[genProdPostingGroup]
+            ,[balAccountType]
+            ,[transactionNo]
+            ,[debitAmount]
+            ,[creditAmount]
+            ,[documentDate]
+            ,[externalDocumentNo]
+            ,[sourceType]
+            ,[sourceNo]
+            ,[noSeries]
+            ,[taxAreaCode]
+            ,[taxLiable]
+            ,[taxGroupCode]
+            ,[useTax]
+            ,[vatBusPostingGroup]
+            ,[vatProdPostingGroup]
+            ,[additionalCurrencyAmount]
+            ,[addCurrencyDebitAmount]
+            ,[addCurrencyCreditAmount]
+            ,[closeIncomeStatementDimID]
+            ,[icPartnerCode]
+            ,[reversed]
+            ,[reversedByEntryNo]
+            ,[reversedEntryNo]
+            ,[gLAccountName]
+            ,[journalTemplName]
+            ,[dimensionSetID]
+            ,[shortcutDimension3Code]
+            ,[shortcutDimension4Code]
+            ,[shortcutDimension5Code]
+            ,[shortcutDimension6Code]
+            ,[shortcutDimension7Code]
+            ,[shortcutDimension8Code]
+            ,[lastDimCorrectionEntryNo]
+            ,[lastDimCorrectionNode]
+            ,[dimensionChangesCount]
+            ,[prodOrderNo]
+            ,[faEntryType]
+            ,[faEntryNo]
+            ,[comment]
+            ,[accountId]
+            ,[lastModifiedDateTime]
+            ,[documentLineNo3PL]
+            ,[wmsDocumentType]
+            ,[wmsDocumentNo]
+            ,[wmsDocumentLineNo]
+            ,[tmsDocumentType]
+            ,[tmsDocumentNo]
+            ,[tmsDocumentSequenceNo]
+            ,[tmsDocumentLineNo]
+            ,[ultimo]
             ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     for item in data:
@@ -58,8 +126,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-
-    print("Script started")
+    print("Repair WMSdocumentLines...")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -69,7 +136,6 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         #connection1 = pyodbc.connect(connection_string2)
-        print("Establishing SQL Server connection")
         connection = pyodbc.connect(connection_string)
 
         # Get a list of company names from SQL Server
@@ -106,7 +172,6 @@ if __name__ == "__main__":
         connection.close()
         end_time = time.time()  # Record end time
         duration = (end_time - start_time )/60 # Calculate duration
-        duration_minutes_rounded = round(duration, 2)
 
         # Print results
         print(f"Total rows inserted: {rows_inserted}")
@@ -114,7 +179,7 @@ if __name__ == "__main__":
 
         
         # Prepare email content
-        email_body = f"The script completed in {duration_minutes_rounded} minutes with {rows_inserted} total rows inserted.\n\n"
+        email_body = f"The script completed in {duration} seconds with {rows_inserted} total rows inserted.\n\n"
         if successes:
             email_body += "Successes:\n" + "\n".join(successes) + "\n\n"
         if failures:
@@ -126,7 +191,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_Services',
+            'Script Summary - BC_FIN_GLE',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

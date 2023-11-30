@@ -44,7 +44,7 @@ def check_values_in_tables(connection):
         return -1, f"An error occurred while checking values in tables: {str(e)}"
 
 if __name__ == "__main__":
-    print("Checking unique GL accounts...")
+    print("Checking unique GL accounts between src and SQL/Staging...")
     start_time = datetime.datetime.now()
     overall_status = "Success"
     connection = pyodbc.connect(sql_connection_string)

@@ -12,7 +12,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF
 
-script_name = "Unique GLaccounts -> TEST"
+script_name = "Unique GLaccounts"
 script_cat = "DWH"
 
 
@@ -63,7 +63,7 @@ def import_to_sql(df, sql_connection_string, table_name):
 
 # Main execution
 if __name__ == "__main__":
-    print("Copying unique GL accounts...")
+    print("Copying unique GL accounts to SQL/Staging...")
     start_time = datetime.datetime.now()
     overall_status = "Success"
     total_inserted_rows = 0

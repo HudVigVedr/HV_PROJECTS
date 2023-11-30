@@ -23,9 +23,7 @@ fetch_company = "?company="
 fetch_filter = "&$filter=postingDescription eq '*"
 fetch_select = "*'&$select=id,no,systemModifiedAt,postingDate,postingDescription,currencyCode,currencyFactor,closed,amountIncludingVAT"
 
-endpoint_xml = _AUTH.vs_quee + _AUTH.end_veson
-
-
+endpoint_xml = _AUTH.vs_quee + _AUTH.vs_token
 
 # SQL Server connection settings
 sql_connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
@@ -134,6 +132,7 @@ if __name__ == "__main__":
                 exact_trans_no = invoice['ExactTransNo']
                 invoice_no = str(invoice['Invoice No'])
                 currency = invoice['Curr']
+                org_amount = invoice['Amount Curr']
                 
                 # Determine the endpoint type for status check
                 status_endpoint_company = "Hartel" if "VLIE" in exact_trans_no else "Chartering"
@@ -160,6 +159,7 @@ if __name__ == "__main__":
                 api_url_fetch = fetch_base + invoice_endpoint_table + fetch_company + status_endpoint_company + fetch_filter + invoice_no + fetch_select
 
                 invoice_details = fetch_invoice_details_if_open(api_url_fetch, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+
           
                 if invoice_details:
                     # Increase the count of processed files
@@ -170,10 +170,21 @@ if __name__ == "__main__":
                     else:
                         currency_factor = invoice_details['currencyFactor']
 
-                    if currency == 'EUR':
-                         currency_amount = invoice_details['amountIncludingVAT'] 
-                    else: currency_amount = round(invoice_details['amountIncludingVAT'] / currency_factor, 2)
+                    # New conditional statement to determine the amount
+                    amount_including_vat = invoice_details['amountIncludingVAT']
+                    difference = abs(org_amount - amount_including_vat)
                     
+                    if -0.01999 <= difference <= 0.019999:
+                        selected_amount = org_amount
+                    else:
+                        selected_amount = amount_including_vat
+
+                    if currency == 'EUR':
+                        currency_amount = selected_amount
+                    else:
+                        currency_amount = round(selected_amount / currency_factor, 2)
+
+                    selected_amount_str = "{:.2f}".format(selected_amount)
                     currency_amount_str = "{:.2f}".format(currency_amount)
 
                     act_date = invoice_details['systemModifiedAt']
@@ -195,7 +206,7 @@ if __name__ == "__main__":
                         actDate=formatted_date,
                         externalRefId=invoice_details['id'],
                         payMode="WT",
-                        currencyAmount=str(invoice_details['amountIncludingVAT']),
+                        currencyAmount=selected_amount_str,
                         currency=currency,
                         baseCurrencyAmount=currency_amount_str, 
                         bankXCRate=str(currency_factor),  
@@ -203,10 +214,10 @@ if __name__ == "__main__":
                         companyCode=company_code_xml
                     )
                     #print(xml_data)
-                    #send_xml_data(endpoint_xml, xml_data)
+                    send_xml_data(endpoint_xml, xml_data)
                     #print(invoice_no)
-                    xml_file_path = "test_xml_data.txt"  
-                    write_xml_to_file(xml_data, xml_file_path)
+                    #xml_file_path = "test_xml_data.txt"  
+                    #write_xml_to_file(xml_data, xml_file_path)
 
     except Exception as e:
         overall_status = "Error"

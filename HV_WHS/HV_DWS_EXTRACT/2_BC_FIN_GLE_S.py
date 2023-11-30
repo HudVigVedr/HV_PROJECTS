@@ -13,7 +13,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "BC_GLentries (upsert)"
+script_name = "BC_GLentries (S)"
 script_cat = "DWH"
 
 
@@ -21,9 +21,8 @@ script_cat = "DWH"
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
 sql_table = "dbo.BC_GLentries"
-print("SQL Server connection string created")
 
-# API endpoint URL (same as before) -> aanvullen
+# API endpoint URL 
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
 api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
@@ -131,14 +130,14 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
         if entity_id is not None and entry_no is not None:
             cursor.execute(sql_check_exists, (entry_no, company_name))
             if cursor.fetchone() is None:
-                values.append(company_name)  # add company name to the list of values
+                values.append(company_name) 
                 cursor.execute(sql_insert, tuple(values))
 
     connection.commit()
 
    
 if __name__ == "__main__":
-    print("Copying BC_GLentries...")
+    print("Incremental refresh BC_GLentries to SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 
@@ -150,6 +149,7 @@ if __name__ == "__main__":
         company_names = _DEF.get_company_names(connection)
 
         for company_name in company_names:
+            #api = f"{api_full}BMA"
             api = f"{api_full}{company_name}"
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
