@@ -153,7 +153,7 @@ def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
 
 
 if __name__ == "__main__":
-    print("Incremental refresh BC_wmsDH...")
+    print("Incremental refresh BC_wmsDH to SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 

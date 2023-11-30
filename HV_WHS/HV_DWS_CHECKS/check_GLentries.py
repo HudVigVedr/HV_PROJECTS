@@ -24,12 +24,12 @@ sql_table = "dbo.BC_GLentries"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-api_full = api_url + "/" + api_table + "?company="
+api_full = api_url + "/" + api_table + "/$count?company="
 #api_full = api_url + "/" + api_table + "?company="
 
 # Function to count data rows from API
 def count_api_rows(data):
-    return len(data)
+    return int(data)
 
 # Function to count rows in SQL table for a specific company
 def count_sql_rows(connection, sql_table, company_name):
@@ -40,7 +40,7 @@ def count_sql_rows(connection, sql_table, company_name):
     return result[0] if result else 0
 
 if __name__ == "__main__":
-    print("Comparing BC_GLentries row counts...")
+    print("Comparing BC_GLentries row counts between src and SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     overall_status = "Success"
     total_mismatches = 0
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     for company_name in company_names:
         try:
             api = f"{api_full}{company_name}"
-            api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            #api = f"{api_full}BMA"
+            api_response = _DEF.make_api_request_count(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
-            api_data = list(api_data_generator)
-            api_row_count = count_api_rows(api_data)
+            api_row_count = count_api_rows(api_response)
             sql_row_count = count_sql_rows(connection, sql_table, company_name)
 
             if api_row_count != sql_row_count:

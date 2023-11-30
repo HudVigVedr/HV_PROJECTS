@@ -10,7 +10,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "TEST BC_wmsDL"
+script_name = "BC_wmsDL"
 script_cat = "DWH"
 
 # SQL Server connection settings
@@ -142,7 +142,7 @@ def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
 
 
 if __name__ == "__main__":
-    print("Incremental refresh BC_wmsDL...")
+    print("Incremental refresh BC_wmsDL to SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 

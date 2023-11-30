@@ -13,25 +13,21 @@ import _DEF
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-sql_table = "dbo.BC_wmsDH"
-print("SQL Server connection string created")
-
+sql_table = "dbo.BC_GLentries"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "wmsDocumentHeaders"
-api_full = api_url + "/" + api_table + "?" + "$select=announcedDate,announcedTime,arrivedDate,arrivedTime,attribute01,attribute02,attribute03,attribute04,attribute05,attribute06,attribute07,attribute08,attribute09,attribute10,billToCustomerName,billToCustomerNo,createdDateTime,createdUserID,deliveryDate,departedDate,documentDate,documentType,estimatedDepartureDate,id,modifiedDateTime,modifiedUserID,movementType,no,portFromName,portToName,postingDate,sellToCustomerName,sellToCustomerNo,shortcutDimension2Code,statusCode,vesselNo,voyageNo&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+api_table = "wmsDocumentLines"
+api_full = api_url + "/" + api_table + "?company="
 
-# Function to check if a record exists based on [No]
-def record_exists(cursor, no, sql_table):
-    cursor.execute(f"SELECT COUNT(1) FROM {sql_table} WHERE [No] = ?", no)
-    return cursor.fetchone()[0] > 0
+# Delete function
+def delete_sql_table(connection):
+    print("Deleting SQL table")
+    cursor = connection.cursor()
+    cursor.execute(f"DELETE FROM {sql_table}")
+    connection.commit()
 
-# Function to delete a record based on [No]
-def delete_record(cursor, no, sql_table):
-    cursor.execute(f"DELETE FROM {sql_table} WHERE [No] = ?", no)
-
-
+# Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
     
     cursor = connection.cursor()
@@ -40,50 +36,41 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
         INSERT INTO {sql_table} (
             [ODataEtag]
             ,[Id]
-            ,[DocumentType]
-            ,[No]
+            ,[SystemCreatedAt]
+            ,[SystemModifiedAt]
+            ,[DocumentNo]
+            ,[LineNo]
             ,[SellToCustomerNo]
-            ,[SellToCustomerName]
-            ,[BillToCustomerNo]
-            ,[BillToCustomerName]
-            ,[VoyageNo]
-            ,[MovementType]
-            ,[DocumentDate]
-            ,[PostingDate]
-            ,[StatusCode]
+            ,[BuyFromVendorNo]
+            ,[CurrencyCode]
+            ,[LineAmountLCY]
+            ,[Type]
+            ,[No]
+            ,[Quantity]
+            ,[UnitPrice]
+            ,[LineAmount]
             ,[CreatedDateTime]
             ,[CreatedUserID]
             ,[ModifiedDateTime]
             ,[ModifiedUserID]
-            ,[AnnouncedDate]
-            ,[AnnouncedTime]
-            ,[ArrivedDate]
-            ,[ArrivedTime]
-            ,[DepartedDate]
-            ,[DeliveryDate]
-            ,[EstimatedDepartureDate]
-            ,[VesselNo]
+            ,[ItemCategoryCode]
+            ,[ProductGroupCode]
+            ,[BatchNo]
             ,[ShortcutDimension2Code]
-            ,[Attribute01]
-            ,[Attribute02]
-            ,[Attribute03]
-            ,[Attribute04]
-            ,[Attribute05]
-            ,[Attribute06]
-            ,[Attribute07]
-            ,[Attribute08]
-            ,[Attribute09]
-            ,[Attribute10]
-            ,[PortFromName]
-            ,[PortToName]
+            ,[PostingDate]
+            ,[InvoiceType]
+            ,[InvoiceNo]
+            ,[InvoiceDate]
+            ,[PurchInvoiceType]
+            ,[PurchInvoiceNo]
+            ,[PurchInvoiceDate]
+            ,[AgreementType]
+            ,[AgreementNo]
             ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     for item in data:
-        if record_exists(cursor, item['No'], sql_table):
-            delete_record(cursor, item['No'], sql_table)
-
         values = list(item.values())
         values.append(company_name)  # add company name to the list of values
         cursor.execute(sql_insert, tuple(values))
@@ -92,8 +79,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-
-    print("Script started")
+    print("Repair WMSdocumentLines")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names
@@ -103,11 +89,12 @@ if __name__ == "__main__":
     try:
         # Establish the SQL Server connection
         #connection1 = pyodbc.connect(connection_string2)
-        print("Establishing SQL Server connection")
         connection = pyodbc.connect(connection_string)
 
         # Get a list of company names from SQL Server
         company_names = _DEF.get_company_names(connection)
+
+        delete_sql_table(connection)
 
         for company_name in company_names:
             print(f"Processing company: {company_name}")
@@ -121,7 +108,7 @@ if __name__ == "__main__":
             try:
                 if api_data_generator:
                     for api_data in api_data_generator:
-                        print(f"Type of api_data: {type(api_data)}")  # Debugging print statement
+                        #print(f"Type of api_data: {type(api_data)}")  # Debugging print statement
                         insert_data_into_sql(connection, [api_data], sql_table, company_name)
                         rows_inserted += 1 
                         iteration_rows_inserted += 1  # Increment rows_inserted
@@ -138,7 +125,6 @@ if __name__ == "__main__":
         connection.close()
         end_time = time.time()  # Record end time
         duration = (end_time - start_time )/60 # Calculate duration
-        duration_minutes_rounded = round(duration, 2)
 
         # Print results
         print(f"Total rows inserted: {rows_inserted}")
@@ -146,7 +132,7 @@ if __name__ == "__main__":
 
         
         # Prepare email content
-        email_body = f"The script completed in {duration_minutes_rounded} minutes with {rows_inserted} total rows inserted.\n\n"
+        email_body = f"The script completed in {duration} seconds with {rows_inserted} total rows inserted.\n\n"
         if successes:
             email_body += "Successes:\n" + "\n".join(successes) + "\n\n"
         if failures:
@@ -158,7 +144,7 @@ if __name__ == "__main__":
 
         # Send email
         _DEF.send_email(
-            'HV-WHS / Script Summary - BC_wmsDH',
+            'Script Summary - BC_FIN_GLE',
             email_body,
             _AUTH.email_recipient,
             _AUTH.email_sender,

@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import csv
 import io
+import re
 
 #send mail
 def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, smtp_username, smtp_password):
@@ -86,6 +87,34 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
             next_link = None
 
 
+def make_api_request_count(api_base, client_id, client_secret, token_url, params=None):
+    access_token = get_access_token(client_id, client_secret, token_url)
+    if params is None:
+        params = {}
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(api_base, headers=headers, params=params)
+    try:
+        response.raise_for_status()
+        # Decode response text assuming UTF-8 encoding and remove BOM if present
+        response_text = response.content.decode('utf-8-sig').strip()
+        # Use regular expression to extract digits
+        count_str = re.search(r'\d+', response_text).group()
+        return int(count_str)
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 401:
+            print("Token expired. Requesting new token...")
+            # Handle token expiration and retry logic if necessary
+        else:
+            print(f"HTTP error making API request: {e}")
+            return None
+    except Exception as e:
+        print(f"Error making API request: {e}")
+        return None
+
+
 
 def make_api_request_XML(api_base, client_id, client_secret, token_url, xml_data, headers):
     access_token = get_access_token(client_id, client_secret, token_url)
@@ -119,9 +148,8 @@ def make_api_request_vs(url):
     return response.text
 
 def get_yesterday_date():
-    yesterday = datetime.now() - timedelta(days=2)
+    yesterday = datetime.now() - timedelta(days=1)
     return yesterday.strftime('%Y-%m-%d')
-
 yesterday_date = get_yesterday_date()
 
 
@@ -143,7 +171,6 @@ def log_status(connection, status, Categorie, Name, start_time, end_time, time_r
     sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name, URi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
-
 
 
 

@@ -18,7 +18,6 @@ script_cat = "DWH"
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
 sql_table = "dbo.BC_Services"
-print("SQL Server connection string created")
 
 
 # API endpoint URL (same as before) -> aanvullen
@@ -62,7 +61,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-    print("Copying BC_wmsServices...")
+    print("Copying BC_wmsServicesto to SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 
