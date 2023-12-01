@@ -4,6 +4,7 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 import time
+import sqlite3
 
 import sys
 sys.path.append('C:/Python/HV_PROJECTS')
@@ -91,16 +92,19 @@ def delete_record(connection, id, company):
     connection.commit()
 
 def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
-    for item in data:
-        id = item['id']
+    try:
+        with connection:
+            for item in data:
+                id = item['id']
 
-
-        if record_exists(connection, id, company_name):
-            print(f"Deleting existing record with No: {id} for entity: {company_name}")
-            delete_record(connection, id, company_name)
-        
-        print(f"Inserting new record with No: {id} for entity: {company_name}")
-        insert_data_into_sql(connection, item, sql_table, company_name)
+                if record_exists(connection, id, company_name):
+                    print(f"Deleting existing record with No: {id} for entity: {company_name}")
+                    delete_record(connection, id, company_name)
+                
+                print(f"Inserting new record with No: {id} for entity: {company_name}")
+                insert_data_into_sql(connection, item, sql_table, company_name)
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     print("Incremental refresh BC_wmsDL to SQL/Staging...")

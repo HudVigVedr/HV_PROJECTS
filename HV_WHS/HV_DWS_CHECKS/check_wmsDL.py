@@ -24,7 +24,7 @@ sql_table = "dbo.BC_wmsDL"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "wmsDocumentLines"
-api_full = api_url + "/" + api_table + "/$count?company="
+api_full = api_url + "/" + api_table + "/$count?$filter=(type eq 'Cost' or type eq 'Service')&company="
 #api_full = api_url + "/" + api_table + "?company="
 
 # Function to count data rows from API
