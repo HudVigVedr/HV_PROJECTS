@@ -85,71 +85,27 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
     connection.commit()
 
 
-def update_record(connection, data, sql_table, doc_no, company):
+def delete_record(connection, doc_no, company):
     cursor = connection.cursor()
-    sql_update = f"""
-        UPDATE {sql_table} 
-        SET [ODataEtag] = ?,
-            [Id] = ?,
-            [DocumentType] = ?,
-            [No] = ?,
-            [SellToCustomerNo] = ?,
-            [SellToCustomerName] = ?,
-            [BillToCustomerNo] = ?,
-            [BillToCustomerName] = ?,
-            [VoyageNo] = ?,
-            [MovementType] = ?,
-            [DocumentDate] = ?,
-            [PostingDate] = ?,
-            [StatusCode] = ?,
-            [CreatedDateTime] = ?,
-            [CreatedUserID] = ?,
-            [ModifiedDateTime] = ?,
-            [ModifiedUserID] = ?,
-            [AnnouncedDate] = ?,
-            [AnnouncedTime] = ?,
-            [ArrivedDate] = ?,
-            [ArrivedTime] = ?,
-            [DepartedDate] = ?,
-            [DeliveryDate] = ?,
-            [EstimatedDepartureDate] = ?,
-            [VesselNo] = ?,
-            [ShortcutDimension2Code] = ?,
-            [Attribute01] = ?,
-            [Attribute02] = ?,
-            [Attribute03] = ?,
-            [Attribute04] = ?,
-            [Attribute05] = ?,
-            [Attribute06] = ?,
-            [Attribute07] = ?,
-            [Attribute08] = ?,
-            [Attribute09] = ?,
-            [Attribute10] = ?,
-            [PortFromName] = ?,
-            [PortToName] = ?
+    sql_delete = f"""
+        DELETE FROM {sql_table}
         WHERE [No] = ? AND [Entity] = ?
     """
-
-    values = [data[key]for key in data]     
-    values.append(doc_no) 
-    values.append(company)          
-    cursor.execute(sql_update, tuple(values))  
-
+    
+    cursor.execute(sql_delete, (doc_no, company))
+    
     connection.commit()
 
-def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
-        
+def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
     for item in data:
- 
         no = item['no']
-     
+
         if record_exists(connection, no, company_name):
-            print(f"Updating record with No: {no} for entity: {company_name}")
-            update_record(connection, item, sql_table, no, company_name)
-            
-        else:
-            print(f"Inserting new record with No: {no} for entity: {company_name}")
-            insert_data_into_sql(connection, item, sql_table, company_name)
+            print(f"Deleting existing record with No: {no} for entity: {company_name}")
+            delete_record(connection, no, company_name)
+        
+        print(f"Inserting new record with No: {no} for entity: {company_name}")
+        insert_data_into_sql(connection, item, sql_table, company_name)
 
 
 if __name__ == "__main__":
@@ -172,7 +128,7 @@ if __name__ == "__main__":
             row_count = len(data_to_insert)
 
             if row_count > threshold:
-                insert_or_update_data_into_sql(connection, data_to_insert, sql_table, company_name)         
+                insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
                 inserted_rows = _DEF.count_rows(data_to_insert)
                 total_inserted_rows += inserted_rows
 
