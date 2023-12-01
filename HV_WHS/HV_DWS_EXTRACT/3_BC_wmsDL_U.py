@@ -22,10 +22,10 @@ api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "wmsDocumentLines"
 api_full = api_url + "/" + api_table + "?" + "$select=agreementNo,agreementType,batchNo,buyFromVendorNo,createdDateTime,createdUserID,currencyCode,documentNo,id,invoiceDate,invoiceNo,invoiceType,itemCategoryCode,lineAmount,lineAmountLCY,lineNo,modifiedDateTime,modifiedUserID,postingDate,productGroupCode,purchInvoiceDate,purchInvoiceNo,purchInvoiceType,quantity,sellToCustomerNo,shortcutDimension2Code,systemCreatedAt,systemModifiedAt,type,no,unitPrice&$filter=(type eq 'Cost' or type eq 'Service') and systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
 
-def record_exists(connection, no, line_no, entity):
+def record_exists(connection, id, entity):
     cursor = connection.cursor()
-    query = f"SELECT COUNT(1) FROM {sql_table} WHERE [documentNo] = ? AND [lineNo] = ? AND [Entity] = ? "
-    cursor.execute(query, (no, line_no, entity))
+    query = f"SELECT COUNT(1) FROM {sql_table} WHERE [id] = ? AND [Entity] = ? "
+    cursor.execute(query, (id, entity))
     result = cursor.fetchone()[0] > 0
     return result
 
@@ -79,27 +79,27 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
     connection.commit()
 
 
-def delete_record(connection, doc_no, line_no, company):
+def delete_record(connection, id, company):
     cursor = connection.cursor()
     sql_delete = f"""
         DELETE FROM {sql_table}
-        WHERE [No] = ? AND [LineNo] = ? and [Entity] = ?
+        WHERE [id] = ? AND [Entity] = ?
     """
     
-    cursor.execute(sql_delete, (doc_no, line_no, company))
+    cursor.execute(sql_delete, (id, company))
     
     connection.commit()
 
 def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
     for item in data:
-        no = item['no']
-        line_no = item['lineNo']
+        id = item['id']
 
-        if record_exists(connection, no, company_name):
-            print(f"Deleting existing record with No: {no} for entity: {company_name}")
-            delete_record(connection, no, line_no company_name)
+
+        if record_exists(connection, id, company_name):
+            print(f"Deleting existing record with No: {id} for entity: {company_name}")
+            delete_record(connection, id, company_name)
         
-        print(f"Inserting new record with No: {no} for entity: {company_name}")
+        print(f"Inserting new record with No: {id} for entity: {company_name}")
         insert_data_into_sql(connection, item, sql_table, company_name)
 
 if __name__ == "__main__":
@@ -122,7 +122,7 @@ if __name__ == "__main__":
             row_count = len(data_to_insert)
 
             if row_count > threshold:
-                insert_or_update_data_into_sql(connection, data_to_insert, sql_table, company_name)         
+                insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
                 inserted_rows = _DEF.count_rows(data_to_insert)
                 total_inserted_rows += inserted_rows
 
