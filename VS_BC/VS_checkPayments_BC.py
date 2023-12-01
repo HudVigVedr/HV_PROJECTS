@@ -151,6 +151,8 @@ if __name__ == "__main__":
                         ledger_code = 19600
                 elif currency == 'SEK':
                         ledger_code = 19700
+                elif currency == 'GBP':
+                        ledger_code = 19300   
                 else:
                         ledger_code = None # or some default value
 
