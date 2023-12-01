@@ -13,12 +13,12 @@ import _DEF
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-sql_table = "dbo.BC_wmsDL"
+sql_table = "dbo.BC_wmsDH"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "wmsDocumentLines"
-api_full = api_url + "/" + api_table + "?company="
+api_table = "wmsDocumentHeaders"
+api_full = api_url + "/" + api_table + "?$select=announcedDate,announcedTime,arrivedDate,arrivedTime,attribute01,attribute02,attribute03,attribute04,attribute05,attribute06,attribute07,attribute08,attribute09,attribute10,billToCustomerName,billToCustomerNo,createdDateTime,createdUserID,deliveryDate,departedDate,documentDate,documentType,estimatedDepartureDate,id,modifiedDateTime,modifiedUserID,movementType,no,portFromName,portToName,postingDate,sellToCustomerName,sellToCustomerNo,shortcutDimension2Code,statusCode,vesselNo,voyageNo&company="
 
 # Delete function
 def delete_sql_table(connection):
@@ -36,38 +36,44 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
         INSERT INTO {sql_table} (
             [ODataEtag]
             ,[Id]
-            ,[SystemCreatedAt]
-            ,[SystemModifiedAt]
-            ,[DocumentNo]
-            ,[LineNo]
-            ,[SellToCustomerNo]
-            ,[BuyFromVendorNo]
-            ,[CurrencyCode]
-            ,[LineAmountLCY]
-            ,[Type]
+            ,[DocumentType]
             ,[No]
-            ,[Quantity]
-            ,[UnitPrice]
-            ,[LineAmount]
+            ,[SellToCustomerNo]
+            ,[SellToCustomerName]
+            ,[BillToCustomerNo]
+            ,[BillToCustomerName]
+            ,[VoyageNo]
+            ,[MovementType]
+            ,[DocumentDate]
+            ,[PostingDate]
+            ,[StatusCode]
             ,[CreatedDateTime]
             ,[CreatedUserID]
             ,[ModifiedDateTime]
             ,[ModifiedUserID]
-            ,[ItemCategoryCode]
-            ,[ProductGroupCode]
-            ,[BatchNo]
+            ,[AnnouncedDate]
+            ,[AnnouncedTime]
+            ,[ArrivedDate]
+            ,[ArrivedTime]
+            ,[DepartedDate]
+            ,[DeliveryDate]
+            ,[EstimatedDepartureDate]
+            ,[VesselNo]
             ,[ShortcutDimension2Code]
-            ,[PostingDate]
-            ,[InvoiceType]
-            ,[InvoiceNo]
-            ,[InvoiceDate]
-            ,[PurchInvoiceType]
-            ,[PurchInvoiceNo]
-            ,[PurchInvoiceDate]
-            ,[AgreementType]
-            ,[AgreementNo]
+            ,[Attribute01]
+            ,[Attribute02]
+            ,[Attribute03]
+            ,[Attribute04]
+            ,[Attribute05]
+            ,[Attribute06]
+            ,[Attribute07]
+            ,[Attribute08]
+            ,[Attribute09]
+            ,[Attribute10]
+            ,[PortFromName]
+            ,[PortToName]
             ,[Entity]
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     for item in data:
@@ -79,7 +85,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
    
 if __name__ == "__main__":
-    print("Repair WMSdocumentLines")
+    print("Repair WMSdocumentHeaders")
     start_time = time.time()  # Record start time
     rows_inserted = 0  # Initialize counter for rows inserted
     successes = []  # List to hold successful company names

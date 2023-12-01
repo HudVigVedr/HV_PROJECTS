@@ -79,67 +79,28 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
     connection.commit()
 
 
-def update_record(connection, data, sql_table, doc_no, line_no, company):
+def delete_record(connection, doc_no, line_no, company):
     cursor = connection.cursor()
-    sql_update = f"""
-        UPDATE {sql_table} 
-        SET [ODataEtag] = ? 
-            ,[Id] = ? 
-            ,[SystemCreatedAt] = ? 
-            ,[SystemModifiedAt] = ? 
-            ,[DocumentNo] = ? 
-            ,[LineNo] = ? 
-            ,[SellToCustomerNo] = ? 
-            ,[BuyFromVendorNo] = ? 
-            ,[CurrencyCode] = ? 
-            ,[LineAmountLCY] = ? 
-            ,[Type] = ? 
-            ,[No] = ? 
-            ,[Quantity] = ? 
-            ,[UnitPrice] = ? 
-            ,[LineAmount] = ? 
-            ,[CreatedDateTime] = ? 
-            ,[CreatedUserID] = ? 
-            ,[ModifiedDateTime] = ? 
-            ,[ModifiedUserID] = ? 
-            ,[ItemCategoryCode] = ? 
-            ,[ProductGroupCode] = ? 
-            ,[BatchNo] = ? 
-            ,[ShortcutDimension2Code] = ? 
-            ,[PostingDate] = ? 
-            ,[InvoiceType] = ? 
-            ,[InvoiceNo] = ? 
-            ,[InvoiceDate] = ? 
-            ,[PurchInvoiceType] = ? 
-            ,[PurchInvoiceNo] = ? 
-            ,[PurchInvoiceDate] = ? 
-            ,[AgreementType] = ? 
-            ,[AgreementNo] = ? 
-        WHERE [DocumentNo] = ? AND [LineNo] = ? AND [Entity] = ?
+    sql_delete = f"""
+        DELETE FROM {sql_table}
+        WHERE [No] = ? AND [LineNo] = ? and [Entity] = ?
     """
-
-    values = [data[key]for key in data]     
-    values.append(doc_no) 
-    values.append(line_no) 
-    values.append(company)          
-    cursor.execute(sql_update, tuple(values))  
-
+    
+    cursor.execute(sql_delete, (doc_no, line_no, company))
+    
     connection.commit()
 
-def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
+def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
     for item in data:
- 
-        no = item['documentNo']
+        no = item['no']
         line_no = item['lineNo']
-     
-        if record_exists(connection, no, line_no, company_name):
-            print(f"Updating record with No: {no} / {line_no} for entity: {company_name}")
-            update_record(connection, item, sql_table, no, line_no, company_name)
-            
-        else:
-            print(f"Inserting new record with No: {no} / {line_no} for entity: {company_name}")
-            insert_data_into_sql(connection, item, sql_table, company_name)
 
+        if record_exists(connection, no, company_name):
+            print(f"Deleting existing record with No: {no} for entity: {company_name}")
+            delete_record(connection, no, line_no company_name)
+        
+        print(f"Inserting new record with No: {no} for entity: {company_name}")
+        insert_data_into_sql(connection, item, sql_table, company_name)
 
 if __name__ == "__main__":
     print("Incremental refresh BC_wmsDL to SQL/Staging...")
