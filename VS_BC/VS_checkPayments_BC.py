@@ -14,7 +14,7 @@ import _DEF
 script_name = "Check invoice status in BC"
 script_cat = "VS_INT"
 
-open_table = "Interface-OpenInvoices"
+open_table = "Interface-OpenInvoices-new"
 open_invoices = _AUTH.end_veson + open_table + _AUTH.vs_token
 
 

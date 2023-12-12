@@ -78,7 +78,7 @@ if __name__ == "__main__":
         _AUTH.smtp_port,
         _AUTH.email_username,
         _AUTH.email_password
-
+        )
 
     finally:
         if overall_status == "Success":

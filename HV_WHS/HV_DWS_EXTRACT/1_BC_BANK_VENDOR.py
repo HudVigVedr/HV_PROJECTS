@@ -18,23 +18,21 @@ import _DEF
 ## -> Step 2: Adjust script variables ##
 
 # Variables for logging
-script_name = "BC_customers"
+script_name = "BC_bank_vendor"
 script_cat = "DWH"
 
 # Variables for the destination table
-sql_table = "dbo.BC_Customers"
+sql_table = "dbo.BC_bank_vendor"
 columns_insert = [
-    "[@odata.etag]", "id", "number", "displayName", "type", "addressLine1", 
-    "addressLine2", "city", "state", "country", "postalCode", "phoneNumber", 
-    "email", "website", "salespersonCode", "balanceDue", "creditLimit", 
-    "taxLiable", "taxAreaId", "taxAreaDisplayName", "taxRegistrationNumber", 
-    "currencyId", "currencyCode", "paymentTermsId", "shipmentMethodId", 
-    "paymentMethodId", "blocked", "lastModifiedDateTime", "Entity"
+    "[@odata.etag]", "_x0033_PL_Vendor_No", "Code", "Name", "Post_Code", 
+    "Country_Region_Code", "Phone_No", "Fax_No", "Contact", 
+    "Bank_Account_No", "SWIFT_Code", "IBAN", "Currency_Code", "Language_Code", "Entity"
 ]
 
 # Variables for API request
-api_table = "customers"
-api_full = _AUTH.end_REST_MS_BC + "/" + api_table + "?company="
+api_table = "bank_leverancier"
+api_full = _AUTH.end_Odata_BC + "/Company('"
+api_full2 = "')/" 
 
  
 # No changes needed 
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         _DEF.delete_sql_table(connection, sql_table)
 
         for company_name in company_names:
-            api = f"{api_full}{company_name}"
+            api = f"{api_full}{company_name}{api_full2}{api_table}"
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
             data_to_insert = list(api_data_generator)

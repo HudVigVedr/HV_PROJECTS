@@ -8,7 +8,47 @@ import csv
 import io
 import re
 
-#send mail
+
+## Data functions ##
+
+def delete_sql_table(connection, sql_table):
+    cursor = connection.cursor()
+    cursor.execute(f"DELETE FROM {sql_table}")
+    connection.commit()
+
+
+def generate_insert_sql(table_name, columns):
+    placeholders = ', '.join(['?'] * len(columns))
+    column_names = ', '.join(columns)
+    sql_insert = f"INSERT INTO {table_name} ({column_names}) VALUES ({placeholders})"
+    return sql_insert
+
+
+def insert_data_into_sql(connection, data, sql_table, company_name, columns):
+    cursor = connection.cursor()
+
+    sql_insert = generate_insert_sql(sql_table, columns)
+
+    for item in data:
+        values = list(item.values())
+        values.append(company_name)  # add company name to the list of values
+        cursor.execute(sql_insert, tuple(values))
+
+    connection.commit()
+
+
+def get_company_names(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT name FROM dbo.companies")
+    companies = cursor.fetchall()
+    
+    # Extract the 'name2' values and convert them to strings
+    company_names = [str(row[0]) for row in companies]
+    
+    return company_names
+
+
+## Email functions ##
 def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, smtp_username, smtp_password):
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -24,16 +64,8 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
     except Exception as e:
         print(f"Failed to send email: {e}")
 
-# Function to get a list of companies from SQL Server
-def get_company_names(connection):
-    cursor = connection.cursor()
-    cursor.execute("SELECT name FROM dbo.companies")
-    companies = cursor.fetchall()
-    
-    # Extract the 'name2' values and convert them to strings
-    company_names = [str(row[0]) for row in companies]
-    
-    return company_names
+
+## API functions ##
 
 # Function to get access token
 def get_access_token(client_id, client_secret, token_url):
@@ -141,7 +173,6 @@ def make_api_request_XML(api_base, client_id, client_secret, token_url, xml_data
         return None
 
 
-
 def make_api_request_vs(url):
     response = requests.get(url)
     response.raise_for_status()  # Will raise an error for bad status codes
@@ -152,15 +183,16 @@ def get_yesterday_date():
     return yesterday.strftime('%Y-%m-%d')
 yesterday_date = get_yesterday_date()
 
+def create_soap_message(xml_data):
+    # Define the SOAP envelope template with CDATA placeholder
+    soap_template = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><PostXml xmlns="urn:microsoft-dynamics-schemas/codeunit/DIPost"><xml><![CDATA[{}
+    ]]></xml></PostXml></s:Body></s:Envelope>"""
 
-def insert_data_into_sql(connection, data, table):
-    cursor = connection.cursor()
+    # Insert the XML data into the CDATA section of the SOAP template
+    return soap_template.format(xml_data)
 
-    # Prepare the SQL insert statement
-    column_names = data[0].keys()
-    placeholders = ', '.join(['?'] * len(column_names))
-    sql_insert = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({placeholders})"
 
+#Logging functions ##
 def count_rows(api_data_generator):
     """Count the number of rows in the API data generator"""
     return sum(1 for _ in api_data_generator)
@@ -171,13 +203,3 @@ def log_status(connection, status, Categorie, Name, start_time, end_time, time_r
     sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name, URi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
-
-
-
-def create_soap_message(xml_data):
-    # Define the SOAP envelope template with CDATA placeholder
-    soap_template = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><PostXml xmlns="urn:microsoft-dynamics-schemas/codeunit/DIPost"><xml><![CDATA[{}
-    ]]></xml></PostXml></s:Body></s:Envelope>"""
-
-    # Insert the XML data into the CDATA section of the SOAP template
-    return soap_template.format(xml_data)

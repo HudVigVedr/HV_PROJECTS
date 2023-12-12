@@ -1,22 +1,31 @@
+#Local path
+path_script = "C:/Python/HV_PROJECTS"
+
+#server_path
+#path_script = "C:/Python/HV_PROJECTS"
+
+
 
 import configparser
 config = configparser.ConfigParser()
-config.read('C:/Python/HV_PROJECTS/config.ini')
+config.read(f"{path_script}/config.ini")
 
 
 # OAuth2 credentials (same as before)
+bc_guid = config['API_CRED']['bc_guid']
 client_id = config['API_CRED']['client_id']
 client_secret = config['API_CRED']['client_secret']
-token_url = "https://login.microsoftonline.com/cc91eaa9-c853-432b-a07d-291b2935204b/oauth2/v2.0/token"
+token_url = f"https://login.microsoftonline.com/{bc_guid}/oauth2/v2.0/token"
 vs_token = config['API_CRED']['vs_token']
 
 # Base endpoints
-end_REST_BOLTRICS_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/api/boltrics/boltrics/v1.0"
-end_REST_MS_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/api/v2.0"
-end_Odata_BC = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123/ODataV4"
+bc_custno = config['API_CRED']['bc_custno']
+end_REST_BOLTRICS_BC = f"https://api.businesscentral.dynamics.com/v2.0/{bc_guid}/{bc_custno}/api/boltrics/boltrics/v1.0"
+end_REST_MS_BC = f"https://api.businesscentral.dynamics.com/v2.0/{bc_guid}/{bc_custno}/api/v2.0"
+end_Odata_BC = f"https://api.businesscentral.dynamics.com/v2.0/{bc_guid}/{bc_custno}/ODataV4"
 end_veson =  "https://api.veslink.com/v1/imos/reports/"
-BC_URi = "https://businesscentral.dynamics.com/cc91eaa9-c853-432b-a07d-291b2935204b/PROD-123?company="
-BC_base = "https://api.businesscentral.dynamics.com/v2.0/cc91eaa9-c853-432b-a07d-291b2935204b/"
+BC_URi = f"https://businesscentral.dynamics.com/{bc_guid}/{bc_custno}?company="
+BC_base = f"https://api.businesscentral.dynamics.com/v2.0/{bc_guid}/"
 vs_quee = "https://api.veslink.com/v1/imosmessaging/queue"
 
 
@@ -26,6 +35,7 @@ database = "Staging"
 username = config['SERVER_CRED']['username']
 password = config['SERVER_CRED']['password']
 
+connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={server};DATABASE={database};UID={username};PWD={password}"
 
 #mail credentials
 email_username = config['EMAIL_CRED']['email_username']
