@@ -62,16 +62,7 @@ if __name__ == "__main__":
             _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(),
                             int((datetime.datetime.now() - start_time).total_seconds() / 60), total_missing_records, error_details, "None", "N/A")
         
-            _DEF.send_email(
-            f"ErrorLog -> {script_name} / {script_cat}",
-            error_details,
-            _AUTH.email_recipient,
-            _AUTH.email_sender,
-            _AUTH.smtp_server,
-            _AUTH.smtp_port,
-            _AUTH.email_username,
-            _AUTH.email_password
-        )        
+            _DEF.send_email_2fa(f"ErrorLog -> {script_name} / {script_cat}", error_details, _AUTH.email_recipient, _AUTH.email_sender, _AUTH.email_client_id, _AUTH.email_client_secret, _AUTH.token_url) 
 
         else:
             success_message = f"No missing records found. Duration: {duration} minutes."
@@ -85,16 +76,7 @@ if __name__ == "__main__":
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, datetime.datetime.now(),
                         int((datetime.datetime.now() - start_time).total_seconds() / 60), total_missing_records, error_details, "None", "N/A")
         
-        _DEF.send_email(
-        f"ErrorLog -> {script_name} / {script_cat}",
-        error_details,
-        _AUTH.email_recipient,
-        _AUTH.email_sender,
-        _AUTH.smtp_server,
-        _AUTH.smtp_port,
-        _AUTH.email_username,
-        _AUTH.email_password
-    )             
+        _DEF.send_email_2fa(f"ErrorLog -> {script_name} / {script_cat}", error_details, _AUTH.email_recipient, _AUTH.email_sender, _AUTH.email_client_id, _AUTH.email_client_secret, _AUTH.token_url)      
 
     finally:
         end_time = datetime.datetime.now()
