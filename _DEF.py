@@ -65,6 +65,29 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
         print(f"Failed to send email: {e}")
 
 
+def send_email_2fa(subject, body, to_address, from_address, client_id, client_secret, token_url):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_address
+    msg['To'] = to_address
+
+    try:
+        # Get the access token using get_access_token function
+        access_token = get_access_token(client_id, client_secret, token_url)
+
+        if access_token:
+            # Connect to the SMTP server and send the email
+            with smtplib.SMTP('hudigveder-nl.mail.protection.outlook.com', 587) as server:
+                server.starttls()
+                server.login(client_id, access_token)
+                server.sendmail(from_address, to_address, msg.as_string())
+                print("Email sent successfully")
+        else:
+            print("Failed to acquire access token")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+
 ## API functions ##
 
 # Function to get access token
@@ -192,6 +215,11 @@ def create_soap_message(xml_data):
     return soap_template.format(xml_data)
 
 
+
+# Function to count data rows from API
+def count_api_rows(data):
+    return int(data)
+
 #Logging functions ##
 def count_rows(api_data_generator):
     """Count the number of rows in the API data generator"""
@@ -203,3 +231,4 @@ def log_status(connection, status, Categorie, Name, start_time, end_time, time_r
     sql = "INSERT INTO dbo.Log (Status,  Categorie, Name, StartDateTime, EndDateTime, TimeRunInMinutes, RecordsInserted, error_details, company_name, URi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
+

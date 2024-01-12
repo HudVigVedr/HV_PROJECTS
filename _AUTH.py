@@ -44,6 +44,9 @@ email_sender = "tlems@hudigveder.com"
 smtp_server = "smtp.office365.com"
 smtp_port = 587
 email_password = config['EMAIL_CRED']['email_password']
+email_client_id = config['EMAIL_CRED']['email_client_id']
+email_tenant_id = config['EMAIL_CRED']['email_tenant_id']
+email_client_secret = config['EMAIL_CRED']['email_client_secret']
 
 
 #Sharepoint
