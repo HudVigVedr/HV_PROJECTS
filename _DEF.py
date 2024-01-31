@@ -65,7 +65,7 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
         print(f"Failed to send email: {e}")
 
 
-def send_email_mfa(subject, body, to_address, from_address, tenant_id, client_id, client_secret):
+def send_email_mfa(subject, body, from_address, to_address, tenant_id, client_id, client_secret):
     token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
     token_data = {
         "grant_type": "client_credentials",
@@ -92,9 +92,10 @@ def send_email_mfa(subject, body, to_address, from_address, tenant_id, client_id
             "toRecipients": [
                 {
                     "emailAddress": {
-                        "address": to_address,
+                        "address": email,
                     }
                 }
+                for email in to_address
             ],
         },
         "saveToSentItems": "true",
