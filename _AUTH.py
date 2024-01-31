@@ -39,15 +39,17 @@ connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={server};DATAB
 
 #mail credentials
 email_username = config['EMAIL_CRED']['email_username']
-email_recipient = "tlems@hudigveder.com"
-email_sender = "tlems@hudigveder.com"
+email_recipient = "thom@blinksolutions.nl"
+email_sender = "thom@blinksolutions.nl"
 smtp_server = "smtp.office365.com"
+#smtp_server = "hudigveder-nl.mail.protection.outlook.com"
 smtp_port = 587
 email_password = config['EMAIL_CRED']['email_password']
 email_client_id = config['EMAIL_CRED']['email_client_id']
 email_tenant_id = config['EMAIL_CRED']['email_tenant_id']
 email_client_secret = config['EMAIL_CRED']['email_client_secret']
-
+guid_blink = config['EMAIL_CRED']['guid_blink']
+token_url_mail = f"https://login.microsoftonline.com/{guid_blink}/oauth2/v2.0/token"
 
 #Sharepoint
 sharepoint_url = "https://hudigvederbv.sharepoint.com/"

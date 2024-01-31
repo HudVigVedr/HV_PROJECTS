@@ -65,27 +65,46 @@ def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, 
         print(f"Failed to send email: {e}")
 
 
-def send_email_2fa(subject, body, to_address, from_address, client_id, client_secret, token_url):
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = from_address
-    msg['To'] = to_address
+def send_email_mfa(subject, body, to_address, from_address, tenant_id, client_id, client_secret):
+    token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
+    token_data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "resource": "https://graph.microsoft.com",
+    }
+    token_response = requests.post(token_url, data=token_data)
+    access_token = token_response.json().get("access_token")
 
-    try:
-        # Get the access token using get_access_token function
-        access_token = get_access_token(client_id, client_secret, token_url)
+    # Send an email using Microsoft Graph API
+    email_url = f"https://graph.microsoft.com/v1.0/users/{from_address}/sendMail"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    email_data = {
+        "message": {
+            "subject": subject,
+            "body": {
+                "contentType": "Text",
+                "content": body,
+            },
+            "toRecipients": [
+                {
+                    "emailAddress": {
+                        "address": to_address,
+                    }
+                }
+            ],
+        },
+        "saveToSentItems": "true",
+    }
+    response = requests.post(email_url, headers=headers, data=json.dumps(email_data))
 
-        if access_token:
-            # Connect to the SMTP server and send the email
-            with smtplib.SMTP('hudigveder-nl.mail.protection.outlook.com', 587) as server:
-                server.starttls()
-                server.login(client_id, access_token)
-                server.sendmail(from_address, to_address, msg.as_string())
-                print("Email sent successfully")
-        else:
-            print("Failed to acquire access token")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+    if response.status_code == 202:
+        print("Email sent successfully!")
+    else:
+        print(f"Failed to send email. Status code: {response.status_code}, Response: {response.text}")
 
 
 ## API functions ##
