@@ -63,16 +63,7 @@ if __name__ == "__main__":
                 error_details = f"Mismatch in row count for {company_name}: API rows {api_row_count}, SQL rows {sql_row_count}"
                 _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), abs(api_row_count - sql_row_count), error_details, company_name, "N/A")
 
-                _DEF.send_email(
-                f"ErrorLog -> {script_name} / {script_cat}",
-                error_details,
-                _AUTH.email_recipient,
-                _AUTH.email_sender,
-                _AUTH.smtp_server,
-                _AUTH.smtp_port,
-                _AUTH.email_username,
-                _AUTH.email_password
-            )        
+                _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)  
 
         except Exception as e:
             overall_status = "Error"
@@ -81,16 +72,7 @@ if __name__ == "__main__":
             print(error_details)
             _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, company_name, "N/A")
 
-            _DEF.send_email(
-            f"ErrorLog -> {script_name} / {script_cat}",
-            error_details,
-            _AUTH.email_recipient,
-            _AUTH.email_sender,
-            _AUTH.smtp_server,
-            _AUTH.smtp_port,
-            _AUTH.email_username,
-            _AUTH.email_password
-        )        
+            _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)    
 
     # Final logging
     if overall_status == "Success":

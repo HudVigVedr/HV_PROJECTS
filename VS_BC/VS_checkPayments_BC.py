@@ -226,7 +226,8 @@ if __name__ == "__main__":
         error_details = str(e)
         print(f"An error occurred: {e}")
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), processed_files_count, error_details, "None", "N/A")
-
+        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+        
     finally:
         if overall_status == "Success":
             success_message = f"Total invoice(s) processed: {processed_files_count}."
