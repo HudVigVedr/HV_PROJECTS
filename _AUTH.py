@@ -39,7 +39,7 @@ connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={server};DATAB
 
 #mail credentials
 email_username = config['EMAIL_CRED']['email_username']
-email_recipient = "thom@blinksolutions.nl"
+email_recipient = ["thom@blinksolutions.nl"]
 email_sender = "blink@blinksolutions.nl"
 smtp_server = "smtp.office365.com"
 #smtp_server = "hudigveder-nl.mail.protection.outlook.com"
