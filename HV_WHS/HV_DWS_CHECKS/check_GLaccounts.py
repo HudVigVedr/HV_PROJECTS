@@ -10,8 +10,8 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = ""
-script_cat = ""
+script_name = "Check GLlegder mapping"
+script_cat = "DWH"
 
 sql_connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
@@ -31,8 +31,8 @@ def check_values_in_tables(BC_GLaccounts, server_file_path):
 
         if missing_values:
             total_missing_records = len(missing_values)
-            error_message = f"Values missing in Excel: {', '.join(missing_values)}"
-            return total_missing_records, error_message
+            error_details = f"Values missing in Excel: {', '.join(missing_values)}"
+            return total_missing_records, error_details
         else:
             return 0, ""
     except Exception as e:
@@ -40,8 +40,11 @@ def check_values_in_tables(BC_GLaccounts, server_file_path):
 
 if __name__ == "__main__":
     print("Checking unique GL accounts between SQL table and Excel on server path...")
-    server_file_path = r"C:\Python\HV_PROJECTS\Grootboekschema.xlsx"
+    start_time = _DEF.datetime.now()
+    overall_status = "Success"
 
+    #server_file_path = r"C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\HV_WHS\Bronbestanden\Grootboekschema.xlsx"
+    server_file_path = r"C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\HV_WHS\Bronbestanden\Grootboekschema.xlsx"
     try:
         connection = pyodbc.connect(sql_connection_string)
         
@@ -51,13 +54,17 @@ if __name__ == "__main__":
                 WHERE [Entity] NOT IN ('Consol HV ', 'Hartel', 'Stella', 'Geervliet', 'Heenvliet', 'MS Geervliet', 'MS Rhoon', 'Noordvliet', 'Zuidvliet', 'Haringvliet', 'Hoogvliet')"""
         BC_GLaccounts = pd.read_sql(query, connection)
 
-        total_missing_records, error_message = check_values_in_tables(BC_GLaccounts, server_file_path)
+        total_missing_records, error_details = check_values_in_tables(BC_GLaccounts, server_file_path)
         
         if total_missing_records == -1:
-            raise Exception(error_message)
+            raise Exception(error_details)
 
         if total_missing_records > 0:
-            print(f"Total missing records: {total_missing_records}. {error_message}")
+            print(f"Total missing records: {total_missing_records}. {error_details}")
+            _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), total_missing_records , error_details, "All", "N/A")
+            _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)    
+
+
         else:
             print("No missing records found.")
     
