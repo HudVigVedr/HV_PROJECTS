@@ -50,7 +50,14 @@ if __name__ == "__main__":
                     error_details = f"{row_count} errors found."
                     _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), row_count, error_details, company_name, full_uri)
                     
-                    _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+                    _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat} / {company_name}", 
+                        f"{error_details} in {company_name}\nClick on {full_uri} to resolve the issue(s).",
+                        _AUTH.email_sender,  
+                        _AUTH.email_recipient,
+                        _AUTH.guid_blink, 
+                        _AUTH.email_client_id, 
+                        _AUTH.email_client_secret
+                    )
 
     except Exception as e:
         overall_status = "Error"
@@ -59,10 +66,14 @@ if __name__ == "__main__":
         # Log the exception as a generic error
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "None", full_uri)
 
-        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
-
-
-
+        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat} / {company_name}", 
+                        f"{error_details} in {company_name}\nClick on {full_uri} to resolve the issue(s).",
+                        _AUTH.email_sender,  
+                        _AUTH.email_recipient,
+                        _AUTH.guid_blink, 
+                        _AUTH.email_client_id, 
+                        _AUTH.email_client_secret
+                    )
     finally:
         if overall_status == "Success":
             # Log a success entry if no errors were found for any company
