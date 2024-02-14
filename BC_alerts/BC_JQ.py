@@ -10,7 +10,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "Errors in JobQuee"
+script_name = "JobQuees"
 script_cat = "Errors_BC"
 
 
@@ -25,7 +25,7 @@ connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server}
 
    
 if __name__ == "__main__":
-    print("Checking errors jobques in BC...")
+    print(f"Checking errors {script_name} in BC...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 

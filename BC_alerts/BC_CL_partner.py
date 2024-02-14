@@ -12,7 +12,7 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "CL partners"
+script_name = "CL master"
 script_cat = "Errors_BC"
 
 
@@ -20,66 +20,57 @@ script_cat = "Errors_BC"
 api_url = _AUTH.end_Odata_BC
 api_table = "clDateInt"
 api_full = api_url + "/Company('"
-api_full2 = "')/" + api_table + "/$count?$filter=(Central_Layer_Partner_ID eq '_CENTRAL')"
+api_full2 = "')/" + api_table + "/$count?$filter=(Central_Layer_Partner_ID ne '')"
+api = api_full + api_full2
 bc_page = "&page=11242117"
 
-values_to_skip = ["Consol HV", "Geervliet", "Heenvliet", "MS Geervliet", "MS Rhoon", "Noordvliet", "Zuidvliet", "Haringvliet", "Hoogvliet"]
+values_to_skip = ["Consol HV"]
 
-sql_connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
+connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-def check_values_in_tables(BC_GLaccounts, server_file_path):
-    try:
-        if not os.path.exists(server_file_path):
-            raise Exception(f"File not found at path: {server_file_path}")
 
-        # Read the Excel file into a DataFrame using pandas
-        excel_data = pd.read_excel(server_file_path, dtype={'no': str})  # Ensure 'no' is treated as a string
-
-        # Get unique values from the 'no' column in the SQL table as strings
-        unique_values_sql = BC_GLaccounts['no'].astype(str).unique()
-
-        # Find missing values by comparing with the Excel data
-        missing_values = [value for value in unique_values_sql if value not in excel_data['no'].tolist()]
-
-        if missing_values:
-            total_missing_records = len(missing_values)
-            error_message = f"Values missing in Excel: {', '.join(missing_values)}"
-            return total_missing_records, error_message
-        else:
-            return 0, ""
-    except Exception as e:
-        return -1, f"An error occurred while checking values in Excel: {str(e)}"
+# Function to count data rows from API
+def count_api_rows(data):
+    return int(data)
 
 if __name__ == "__main__":
-    print("Checking unique GL accounts between SQL table and Excel on server path...")
-    server_file_path = r"C:\Python\HV_PROJECTS\Grootboekschema.xlsx"
+    print(f"Checking errors {script_name} in BC...")
+    connection = pyodbc.connect(connection_string)
+    overall_status = "Success"
+    total_mismatches = 0
 
-    try:
-        connection = pyodbc.connect(sql_connection_string)
-        
-        # Convert pyodbc connection to SQLAlchemy engine
-        engine = create_engine(f"mssql+pyodbc://{_AUTH.username}:{_AUTH.password}@{_AUTH.server}/{_AUTH.database}?driver=ODBC Driver 17 for SQL Server")
+    start_time = _DEF.datetime.now()
+    company_names = _DEF.get_company_names_skip(connection, values_to_skip)
 
-        # Load unique values from the SQL Server table's 'no' column as strings
-        query = """
-        SELECT DISTINCT CAST(no AS NVARCHAR(255)) AS no
-        FROM BC_GLaccounts
-        WHERE Entity NOT IN (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """  # Replace YourTableNameHere with your actual table name
-        BC_GLaccounts = pd.read_sql(query, engine, params=tuple(values_to_skip))
+    for company_name in company_names:
+        try:
+            api = f"{api_full}{company_name}{api_full2}"
+            #api = f"{api_full}BMA"
+            api_response = _DEF.make_api_request_count(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_row_count = count_api_rows(api_response)
 
-        total_missing_records, error_message = check_values_in_tables(BC_GLaccounts, server_file_path)
-        
-        if total_missing_records == -1:
-            raise Exception(error_message)
 
-        if total_missing_records > 0:
-            print(f"Total missing records: {total_missing_records}. {error_message}")
-        else:
-            print("No missing records found.")
-    
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        if 'connection' in locals():
-            connection.close()
+            if api_row_count == 0:
+                overall_status = "Error"
+                total_mismatches += 1
+                error_details = f"Mismatch in row count for {company_name}: API rows {api_row_count}"
+                _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), abs(api_row_count), error_details, company_name, "N/A")
+
+                _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)  
+
+        except Exception as e:
+            overall_status = "Error"
+            total_mismatches += 1
+            error_details = f"An error occurred for {company_name}: {str(e)}"
+            print(error_details)
+            _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, company_name, "N/A")
+
+            _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)    
+
+    # Final logging
+    if overall_status == "Success":
+        success_message = "All companies have a CL master."
+        _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, success_message, "All", "N/A")
+    else:
+        error_summary = f"Total companies with mismatches or errors: {total_mismatches}."
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), "N/A", error_summary, "Multiple", "N/A")
