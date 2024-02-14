@@ -1,13 +1,13 @@
 import os
 import datetime
-import time 
-import shutil
-import smtplib
 import logging
+import shutil
+from contextlib import contextmanager
 import win32com.client as win32
-from email.mime.text import MIMEText
 import pythoncom
 import pyodbc
+import sys
+import time
 
 import sys
 sys.path.append('C:/Python/HV_PROJECTS')
@@ -36,9 +36,19 @@ def delete_old_files(destination_folder):
             except Exception as e:
                 logger.exception(f"Error occurred while deleting old file: {file_path}")
 
+@contextmanager
+def excel_application(visible=False):
+    pythoncom.CoInitialize()
+    try:
+        app = win32.gencache.EnsureDispatch('Excel.Application')
+        app.Visible = visible
+        yield app
+    finally:
+        app.Quit()
+        pythoncom.CoUninitialize()
+
 
 def refresh_and_copy_filesC(folder_path, destination_folder):
-    pythoncom.CoInitialize()
 
     # Refresh data connections and copy files
     successful_files = []
@@ -46,8 +56,7 @@ def refresh_and_copy_filesC(folder_path, destination_folder):
     refreshed_files = []
 
     # Create an instance of the Excel application
-    excel = win32.gencache.EnsureDispatch('Excel.Application')
-    excel.Visible = True
+    #excel = win32.gencache.EnsureDispatch('Excel.Application')
 
     for file_name in os.listdir(folder_pathC):
         if file_name.endswith('.xlsm'):
@@ -108,13 +117,17 @@ def refresh_and_copy_files(folder_path, destination_folder):
 
     # Create an instance of the Excel application
     excel = win32.gencache.EnsureDispatch('Excel.Application')
+    app.Visible = visible
+    yield app
 
-    excel.Visible = True
+    excel.Visible = False
 
     for file_name in os.listdir(folder_path):
         if file_name.endswith('.xlsm'):
             try:
                 current_date = datetime.datetime.now().strftime('%d%m%Y')
+
+
 
                 # Append the current date to the original file name, preserving the extension
                 base_file_name, extension = os.path.splitext(file_name)
@@ -190,9 +203,6 @@ if __name__ == "__main__":
     overall_status = "Success"
     full_uri = "N/A"  
 
-    # Start timer
-    start_time = datetime.datetime.now()
-
     try:
         # Define folder paths for processing
         folders = {
@@ -202,6 +212,11 @@ if __name__ == "__main__":
         }
 
         for folder_name, (folder_path, destination_folder) in folders.items():
+            current_time = datetime.datetime.now()
+            elapsed_time = (current_time - start_time).total_seconds()
+            if elapsed_time > 2700:  # 2700 seconds = 45 minutes
+                raise TimeoutError("Script execution exceeded 45 minutes.")
+
             os.makedirs(destination_folder, exist_ok=True)
             delete_old_files(destination_folder)
 
@@ -240,6 +255,17 @@ if __name__ == "__main__":
                             int((datetime.datetime.now() - start_time).total_seconds() / 60), 
                             0, "No errors found in any folder", "All", full_uri)
 
+    except TimeoutError as te:
+        overall_status = "Error"
+        error_details = str(te)
+        # Log the timeout error
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
+                        datetime.datetime.now(), 
+                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
+                        0, error_details, "N/A", full_uri)
+        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+
+    
     except Exception as e:
         # Catch-all for any unexpected errors in the script
         overall_status = "Error"
@@ -247,6 +273,6 @@ if __name__ == "__main__":
         _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
                         datetime.datetime.now(), 
                         int((datetime.datetime.now() - start_time).total_seconds() / 60), 
-                        0, error_details, "General", full_uri)
+                        0, error_details, "N/A", full_uri)
 
         _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)

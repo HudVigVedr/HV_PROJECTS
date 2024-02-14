@@ -143,13 +143,4 @@ if __name__ == "__main__":
             email_body += f"Rows inserted for {company}: {rows}\n"
 
         # Send email
-        _DEF.send_email(
-            'Script Summary - BC_FIN_GLE',
-            email_body,
-            _AUTH.email_recipient,
-            _AUTH.email_sender,
-            _AUTH.smtp_server,
-            _AUTH.smtp_port,
-            _AUTH.email_username,
-            _AUTH.email_password
-        )
+        _DEF.send_email_mfa(f"ErrorLog -> Repair_DL", email_body,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)      
