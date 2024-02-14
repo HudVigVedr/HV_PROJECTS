@@ -8,6 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 import time
 
+
 import sys
 sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
@@ -19,29 +20,30 @@ script_cat = "DWH"
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-sql_table = "dbo.BC_wmsDL"
+sql_table = "dbo.relation_log"
 
 # API endpoint URL (same as before) -> aanvullen
-api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "wmsDocumentLines"
-api_full = api_url + "/" + api_table + "/$count?$filter=(type eq 'Cost' or type eq 'Service')&company="
+api_url = _AUTH.end_REST_MS_BC
+api_table = "vendors"
+api_full = api_url + "/" + api_table + "/$count"
 #api_full = api_url + "/" + api_table + "?company="
-
+api_vendor = api_url + "/vendors?$count&company="
+api_customer = api_url + "/customers?&company="
 # Function to count data rows from API
 def count_api_rows(data):
     return int(data)
-    return int(data)
 
-# Function to count rows in SQL table for a specific company
-def count_sql_rows(connection, sql_table, company_name):
+
+def log_relations(connection, date, Entity, Customers, Vendors):
+    """Log the count into the dbo.relation_log table"""
     cursor = connection.cursor()
-    sql_query = f"SELECT COUNT(*) FROM {sql_table} WHERE [Entity] = ?"
-    cursor.execute(sql_query, (company_name,))
-    result = cursor.fetchone()
-    return result[0] if result else 0
+    sql = "INSERT INTO dbo.Log (date, Entity, Customers, Vendors) VALUES (?, ?, ?, ?)"
+    cursor.execute(sql, date, Entity, Customers, Vendors)
+    connection.commit()
+
 
 if __name__ == "__main__":
-    print(f"Comparing {api_table} row counts between src and SQL/Staging...")
+    print(f"Inserting relation count into sql/staging..")
     connection = pyodbc.connect(connection_string)
     overall_status = "Success"
     total_mismatches = 0
@@ -51,20 +53,16 @@ if __name__ == "__main__":
 
     for company_name in company_names:
         try:
-            api = f"{api_full}{company_name}"
+            api_vendor_full = f"{api_vendor}{company_name}"
+            api_customer_full = f"{api_customer}{company_name}"
             #api = f"{api_full}BMA"
-            api_response = _DEF.make_api_request_count(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_vendor = _DEF.make_api_request_count(api_vendor_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_customer = _DEF.make_api_request_count(api_customer_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
-            api_row_count = count_api_rows(api_response)
-            sql_row_count = count_sql_rows(connection, sql_table, company_name)
+            api_row_count_vendor = count_api_rows(api_response_vendor)
+            api_row_count_customer = count_api_rows(api_response_customer)
 
-            if api_row_count != sql_row_count:
-                overall_status = "Error"
-                total_mismatches += 1
-                error_details = f"Mismatch in row count for {company_name}: API rows {api_row_count}, SQL rows {sql_row_count}"
-                _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), abs(api_row_count - sql_row_count), error_details, company_name, "N/A")
-
-                _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)      
+            log_relations(connection, str(start_time), company_name, api_row_count_customer, api_row_count_vendor)
 
 
         except Exception as e:
@@ -79,7 +77,7 @@ if __name__ == "__main__":
 
     # Final logging
     if overall_status == "Success":
-        success_message = "All companies have matching row counts between API and SQL."
+        success_message = "Relation count is inserted"
         _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, success_message, "All", "N/A")
     else:
         error_summary = f"Total companies with mismatches or errors: {total_mismatches}."

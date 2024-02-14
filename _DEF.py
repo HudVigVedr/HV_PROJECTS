@@ -47,6 +47,16 @@ def get_company_names(connection):
     
     return company_names
 
+def get_company_names_skip(connection, values_to_skip):
+    cursor = connection.cursor()
+    cursor.execute("SELECT name FROM dbo.companies")
+    companies = cursor.fetchall()
+    
+    # Extract the 'name2' values and convert them to strings
+    company_names = [str(row[0]) for row in companies if str(row[0]) not in values_to_skip]
+    
+    return company_names
+
 
 ## Email functions ##
 def send_email(subject, body, to_address, from_address, smtp_server, smtp_port, smtp_username, smtp_password):
