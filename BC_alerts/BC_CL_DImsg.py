@@ -20,13 +20,10 @@ api_table = "diMessages"
 api_full = api_url + "/" + api_table + "?$filter=(status eq 'Failed') and contains(messageType, 'CDM')&company="
 bc_page = "&page=11242113"
 
-connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-
-
 
 if __name__ == "__main__":
     print("Checking errors CL in BC...")
-    connection = pyodbc.connect(connection_string)
+    connection = pyodbc.connect(_AUTH.connection_string)
     threshold = 0
 
     start_time = _DEF.datetime.now()

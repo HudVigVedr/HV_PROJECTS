@@ -21,12 +21,10 @@ api_full = api_url + "/Company('"
 api_full2 = "')/" + api_table + "?$select=Object_ID_to_Run,Object_Caption_to_Run,Status&$filter=Status eq 'Error'"
 bc_page = "&page=672"
 
-connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-
    
 if __name__ == "__main__":
     print(f"Checking errors {script_name} in BC...")
-    connection = pyodbc.connect(connection_string)
+    connection = pyodbc.connect(_AUTH.connection_string)
     threshold = 0
 
     start_time = _DEF.datetime.now()

@@ -7,6 +7,7 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 import time
+from datetime import datetime
 
 
 import sys
@@ -27,18 +28,21 @@ api_url = _AUTH.end_REST_MS_BC
 api_table = "vendors"
 api_full = api_url + "/" + api_table + "/$count"
 #api_full = api_url + "/" + api_table + "?company="
-api_vendor = api_url + "/vendors?$count&company="
-api_customer = api_url + "/customers?&company="
+api_vendor = api_url + "/vendors/$count?company="
+api_customer = api_url + "/customers/$count?company="
+api_filter = "&$filter=systemCreatedAt gt "
+api_filter2 = "T00:00:00.000Z) and (systemCreatedAt lt "
+api_filter3 = "T23:59:59.000Z)"
 # Function to count data rows from API
 def count_api_rows(data):
     return int(data)
 
 
-def log_relations(connection, date, Entity, Customers, Vendors):
-    """Log the count into the dbo.relation_log table"""
+def log_relations(connection, date, Entity, new_customers, ttl_customers, new_Vendors, ttl_vendors):
+    """Log the count into the dbo.relations_log table"""
     cursor = connection.cursor()
-    sql = "INSERT INTO dbo.Log (date, Entity, Customers, Vendors) VALUES (?, ?, ?, ?)"
-    cursor.execute(sql, date, Entity, Customers, Vendors)
+    sql = "INSERT INTO dbo.relations_log (date, Entity, new_customers, ttl_customers, new_Vendors, ttl_vendors) VALUES (?, ?, ?, ?,? ,?)"
+    cursor.execute(sql, date, Entity, new_customers, ttl_customers, new_Vendors, ttl_vendors)
     connection.commit()
 
 
@@ -51,18 +55,27 @@ if __name__ == "__main__":
     start_time = _DEF.datetime.now()
     company_names = _DEF.get_company_names(connection)
 
+    date = datetime.now().date()
+
     for company_name in company_names:
         try:
-            api_vendor_full = f"{api_vendor}{company_name}"
-            api_customer_full = f"{api_customer}{company_name}"
+            api_vendor = f"{api_vendor}{company_name}{api_filter}{date}"
+            api_customer = f"{api_customer}{company_name}{api_filter}{date}"
+            api_vendor_full = f"{api_vendor}{company_name}{api_filter}{date}{api_filter2}{date}{api_filter3}"
+            api_customer_full = f"{api_customer}{company_name}{api_filter}{date}{api_filter2}{date}{api_filter3}"
             #api = f"{api_full}BMA"
-            api_response_vendor = _DEF.make_api_request_count(api_vendor_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
-            api_response_customer = _DEF.make_api_request_count(api_customer_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_vendor_new = _DEF.make_api_request_count(api_vendor_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_customer_new = _DEF.make_api_request_count(api_customer_full, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_vendor = _DEF.make_api_request_count(api_vendor, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
+            api_response_customer = _DEF.make_api_request_count(api_customer, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
-            api_row_count_vendor = count_api_rows(api_response_vendor)
-            api_row_count_customer = count_api_rows(api_response_customer)
+            api_row_count_vendor_new = api_response_vendor_new
+            api_row_count_customer_new = api_response_customer_new
+            api_row_count_vendor = api_response_vendor
+            api_row_count_customer = api_response_customer
+            
 
-            log_relations(connection, str(start_time), company_name, api_row_count_customer, api_row_count_vendor)
+            log_relations(connection, date, company_name, api_row_count_customer_new, api_row_count_customer, api_row_count_vendor, api_row_count_vendor_new)
 
 
         except Exception as e:
