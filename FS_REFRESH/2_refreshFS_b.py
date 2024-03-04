@@ -19,7 +19,7 @@ script_cat = "FIN"
 
 #local
 #folder_path = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\B'
-#estination_folder = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\B'
+#destination_folder = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\B'
 
 #server
 folder_path = r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\B'

@@ -26,8 +26,6 @@ bc_page = "&page=11242117"
 
 values_to_skip = ["Consol HV"]
 
-connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-
 
 # Function to count data rows from API
 def count_api_rows(data):
@@ -35,7 +33,7 @@ def count_api_rows(data):
 
 if __name__ == "__main__":
     print(f"Checking errors {script_name} in BC...")
-    connection = pyodbc.connect(connection_string)
+    connection = pyodbc.connect(_AUTH.connection_string)
     overall_status = "Success"
     total_mismatches = 0
 

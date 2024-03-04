@@ -18,8 +18,8 @@ script_name = "Refresh finance excels"
 script_cat = "FIN"
 
 #local
-#folder_path = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\C'
-#destination_folder = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\TestAutomation\C'
+folder_path = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\C'
+destination_folder = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\TestAutomation\C'
 
 #server
 folder_path = r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\C'
