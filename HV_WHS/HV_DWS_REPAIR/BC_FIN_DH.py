@@ -49,6 +49,7 @@ columns_insert = [
       ,"DeliveryDate"
       ,"EstimatedDepartureDate"
       ,"VesselNo"
+      ,"OrderTypeCode"
       ,"ShortcutDimension2Code"
       ,"Attribute01"
       ,"Attribute02"
@@ -68,7 +69,7 @@ columns_insert = [
 # Variables for API request
 api_table = "wmsDocumentHeaders"
 
-api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?" + "$select=announcedDate,announcedTime,arrivedDate,arrivedTime,attribute01,attribute02,attribute03,attribute04,attribute05,attribute06,attribute07,attribute08,attribute09,attribute10,billToCustomerName,billToCustomerNo,createdDateTime,createdUserID,deliveryDate,departedDate,documentDate,documentType,estimatedDepartureDate,id,modifiedDateTime,modifiedUserID,movementType,no,portFromName,portToName,postingDate,sellToCustomerName,sellToCustomerNo,shortcutDimension2Code,statusCode,vesselNo,voyageNo&company="
+api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?" + "$select=announcedDate,announcedTime,arrivedDate,arrivedTime,attribute01,attribute02,attribute03,attribute04,attribute05,attribute06,attribute07,attribute08,attribute09,attribute10,billToCustomerName,billToCustomerNo,createdDateTime,createdUserID,deliveryDate,departedDate,documentDate,documentType,estimatedDepartureDate,id,modifiedDateTime,modifiedUserID,movementType,no,portFromName,portToName,postingDate,sellToCustomerName,sellToCustomerNo,shortcutDimension2Code,statusCode,vesselNo,voyageNo,orderTypeCode&company="
  
 # No changes needed 
 if __name__ == "__main__":
