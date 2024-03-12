@@ -106,6 +106,7 @@ def refresh_and_copy_files(folder_path, destination_folder):
 
 if __name__ == "__main__":
 
+    _DEF.quit_all_excel_instances()
     # Configure logging
     #logging.basicConfig(filename='log.log', level=logging.DEBUG)
     #logger = logging.getLogger(__name__)
