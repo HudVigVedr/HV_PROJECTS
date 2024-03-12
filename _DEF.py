@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import csv
 import io
 import re
+import psutil
 
 
 ## Data functions ##
@@ -262,3 +263,8 @@ def log_status(connection, status, Categorie, Name, start_time, end_time, time_r
     cursor.execute(sql, status, Categorie, Name, start_time, end_time, time_run, records_inserted, error_details, company_name, URi)
     connection.commit()
 
+def quit_all_excel_instances():
+    for process in psutil.process_iter(['name']):
+        if process.info['name'] == 'EXCEL.EXE':
+            process.terminate()  # Terminate the process
+            print(f"Terminated {process}")

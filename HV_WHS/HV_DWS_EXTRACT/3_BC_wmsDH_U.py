@@ -61,6 +61,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
             ,[DeliveryDate]
             ,[EstimatedDepartureDate]
             ,[VesselNo]
+            ,[OrderTypeCode]
             ,[ShortcutDimension2Code]
             ,[Attribute01]
             ,[Attribute02]
@@ -74,7 +75,6 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
             ,[Attribute10]
             ,[PortFromName]
             ,[PortToName]
-            ,[OrderType]
             ,[Entity]
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
