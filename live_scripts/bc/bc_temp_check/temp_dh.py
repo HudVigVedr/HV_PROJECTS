@@ -21,14 +21,14 @@ import _DEF
 ## -> Step 2: Adjust script variables ##
 
 # Variables for logging
-script_name = "temp_CTR"
-script_cat = "Check"
+script_name = "temp_DH"
+script_cat = "temp_check_bc"
 
 # Variables for API request
-api_table = "wmsDocumentContainers"
-api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?company=Gans%20BV&$filter=systemModifiedAt gt 2023-12-31T00:00:00.000Z"
+api_table = "wmsDocumentHeaders"
+api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?company=Gans%20BV&$filter=postingDate gt 2023-12-31"
 
-excel_file = r'C:\Python\output\temp_wms\wmsCTR.xlsx'
+excel_file = r'C:\Python\output\temp_wms\wmsDH.xlsx'
 
 def call_to_excel(data, excel_file):
     # Load the workbook

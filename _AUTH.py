@@ -1,5 +1,5 @@
 #Local path
-path_script = "C:/Python/HV_PROJECTS"
+path_script = "C:/Python/gen/hv"
 
 #server_path
 #path_script = "C:/Python/HV_PROJECTS"
