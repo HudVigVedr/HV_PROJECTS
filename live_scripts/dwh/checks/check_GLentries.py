@@ -14,7 +14,7 @@ import _AUTH
 import _DEF 
 
 script_name = "Check GLentries"
-script_cat = "DWH"
+script_cat = "DWH_checks"
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"

@@ -22,13 +22,13 @@ import _DEF
 
 # Variables for logging
 script_name = "temp_DL"
-script_cat = "Check"
+script_cat = "temp_check_bc"
 
 # Variables for API request
-api_table = "wmsDocumentLines"
-api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?company=Gans%20BV&$filter=postingDate gt 2023-12-31"
+api_table = "wmsDocumentPackageLines"
+api_full = _AUTH.end_REST_BOLTRICS_BC + "/" + api_table + "?company=Gans%20BV&$filter=systemModifiedAt gt 2023-12-31T00:00:00.000Z"
 
-excel_file = r'C:\Python\output\temp_wms\wmsDL.xlsx'
+excel_file = r'C:\Python\output\temp_wms\wmsPL.xlsx'
 
 def call_to_excel(data, excel_file):
     # Load the workbook
