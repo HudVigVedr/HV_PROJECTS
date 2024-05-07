@@ -1,13 +1,14 @@
 import requests
-import pyodbc
 import json
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
-import csv
-import io
 import re
 import psutil
+import re
+from retrying import retry
+
+
 
 
 ## Data functions ##
@@ -137,7 +138,9 @@ def get_access_token(client_id, client_secret, token_url):
     except Exception as e:
         print(f"Error getting access token: {e}")
         return None
+    
 
+@retry(stop_max_attempt_number=10, wait_fixed=1000) 
 def make_api_request(api_base, client_id, client_secret, token_url, params=None):
     access_token = get_access_token(client_id, client_secret, token_url)
     if params is None:
@@ -172,7 +175,7 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
             print(f"Error making API request for {next_link}: {e}")
             next_link = None
 
-
+@retry(stop_max_attempt_number=10, wait_fixed=1000) 
 def make_api_request_count(api_base, client_id, client_secret, token_url, params=None):
     access_token = get_access_token(client_id, client_secret, token_url)
     if params is None:
