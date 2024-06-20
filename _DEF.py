@@ -11,7 +11,7 @@ from retrying import retry
 
 
 
-## Data functions ##
+## Data functions_ ##
 
 def delete_sql_table(connection, sql_table):
     cursor = connection.cursor()
