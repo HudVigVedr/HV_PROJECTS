@@ -32,6 +32,7 @@ def record_exists(connection, no, entity):
 # Function to insert data into SQL Server
 def insert_data_into_sql(connection, data, sql_table, company_name):
     
+    posted = 0
     cursor = connection.cursor()
 
     sql_insert = f"""
@@ -76,11 +77,11 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
             ,[PortFromName]
             ,[PortToName]
             ,[Entity]
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     values = [data[key]for key in data]     
-    values.append(company_name)          
+    values.append(company_name)  
     cursor.execute(sql_insert, tuple(values))  
 
     connection.commit()
