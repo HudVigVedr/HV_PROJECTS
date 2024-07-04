@@ -49,7 +49,8 @@ if __name__ == "__main__":
 
     try:
         company_names = _DEF.get_company_names(connection)
-
+        _DEF.delete_sql_table(connection, sql_table)
+        
         for company_name in company_names:
             api = f"{api_full}{company_name}"
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
