@@ -139,6 +139,7 @@ if __name__ == "__main__":
     total_inserted_rows = 0
 
     try:
+        _DEF.delete_sql_table(connection, sql_table)
         company_names = _DEF.get_company_names(connection)
 
         for company_name in company_names:
