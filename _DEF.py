@@ -15,7 +15,7 @@ from retrying import retry
 
 def delete_sql_table(connection, sql_table):
     cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {sql_table}")
+    cursor.execute(f"TRUNCATE TABLE {sql_table}")
     connection.commit()
 
 
@@ -42,6 +42,16 @@ def insert_data_into_sql(connection, data, sql_table, company_name, columns):
 def get_company_names(connection):
     cursor = connection.cursor()
     cursor.execute("SELECT name FROM dbo.companies")
+    companies = cursor.fetchall()
+    
+    # Extract the 'name2' values and convert them to strings
+    company_names = [str(row[0]) for row in companies]
+    
+    return company_names
+
+def get_company_names2(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT name FROM dbo.companies2")
     companies = cursor.fetchall()
     
     # Extract the 'name2' values and convert them to strings
