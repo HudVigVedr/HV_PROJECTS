@@ -115,8 +115,8 @@ if __name__ == "__main__":
             row_count = len(data_to_insert)
 
             if row_count > threshold:
-                #insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
-                insert_data_into_sql(connection, data_to_insert, sql_table, company_name)
+                insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
+                #insert_data_into_sql(connection, data_to_insert, sql_table, company_name)
                 inserted_rows = _DEF.count_rows(data_to_insert)
                 total_inserted_rows += inserted_rows
 

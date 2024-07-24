@@ -21,7 +21,7 @@ sql_table = "BC_PurchaseInvoiceHeader"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "purchaseInvoiceHeaders"
-api_full = api_url + "/" + api_table + "?" + "$select=id,no,payToVendorNo,postingDate,preAssignedNo,userID&$filter=systemModifiedAtcls gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+api_full = api_url + "/" + api_table + "?" + "$select=id,no,payToVendorNo,postingDate,preAssignedNo,userID&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
 #api_full = api_url + "/" + api_table + "?" + "$select=id,no,payToVendorNo,postingDate,preAssignedNo,userID&company="
 
 
