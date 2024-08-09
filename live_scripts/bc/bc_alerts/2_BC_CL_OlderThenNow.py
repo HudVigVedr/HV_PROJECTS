@@ -10,11 +10,11 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "New CL messages older then 20 minutes"
+script_name = "new CL messages older then 5 minutes"
 script_cat = "Errors_BC"
 
 def get_m20m_time():
-    twenty_minutes_ago = datetime.now() - timedelta(minutes=20)
+    twenty_minutes_ago = datetime.now() - timedelta(hours= 2, minutes= 5)
     return twenty_minutes_ago.strftime('%H:%M:%S')
 
 twenty_minutes_ago_time = get_m20m_time()
@@ -27,12 +27,12 @@ current_date = get_current_date()
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "diMessages"
-api_full = api_url + "/" + api_table + "?$filter=(status eq 'New') and contains(messageType, 'CDM') and modifiedDateTime gt " + current_date + "T" + twenty_minutes_ago_time + ".000Z&company="
+api_full = api_url + "/" + api_table + "?$filter=(status eq 'New') and contains(messageType, 'CDM') and (receivedAt lt " + current_date + "T" + twenty_minutes_ago_time + ".000Z)&company="
 bc_page = "&page=11242113"
 
 
 if __name__ == "__main__":
-    print("Checking errors CL in BC...")
+    print(f"Checking {script_name} in BC...")
     connection = pyodbc.connect(_AUTH.connection_string)
     threshold = 0
 
