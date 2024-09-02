@@ -34,6 +34,10 @@ server = "HV-db"
 database = "Staging"
 username = config['SERVER_CRED']['username']
 password = config['SERVER_CRED']['password']
+database_gs = "Gatship_Ovet"
+username_gs = config['SERVER_CRED']['username_gs']
+password_gs = config['SERVER_CRED']['password_gs']
+
 
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={server};DATABASE={database};UID={username};PWD={password}"
 
