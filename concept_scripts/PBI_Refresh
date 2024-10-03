@@ -1,0 +1,44 @@
+import requests
+
+# Replace with your actual values
+client_id = 'db16d0ab-9db0-4028-88d5-073c2550f388'
+client_secret = 'MOz8Q~KPRGsJN9UtGFIemjgVhB~zuxRhDV3Eodrw'
+tenant_id = 'cc91eaa9-c853-432b-a07d-291b2935204b'
+authority_url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'
+scope = ['https://analysis.windows.net/powerbi/api/.default']
+resource = 'https://api.powerbi.com/'
+
+# Get access token
+def get_access_token():
+    data = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'scope': scope
+    }
+    response = requests.post(authority_url, data=data)
+    return response.json().get('access_token')
+
+access_token = get_access_token()
+
+# Get Workspaces
+headers = {'Authorization': f'Bearer {access_token}'}
+groups_url = 'https://api.powerbi.com/v1.0/myorg/groups'
+workspaces = requests.get(groups_url, headers=headers).json()
+print(workspaces)
+
+for workspace in workspaces['value']:
+    group_id = workspace['id']
+    # Get Datasets in Workspace
+    datasets_url = f'https://api.powerbi.com/v1.0/myorg/groups/{group_id}/datasets'
+    datasets = requests.get(datasets_url, headers=headers).json()
+    
+    for dataset in datasets['value']:
+        dataset_id = dataset['id']
+        # Get Refresh History for Dataset
+        refreshes_url = f'https://api.powerbi.com/v1.0/myorg/groups/{group_id}/datasets/{dataset_id}/refreshes'
+        refresh_history = requests.get(refreshes_url, headers=headers).json()
+        
+        print(f"Workspace: {workspace['name']}, Dataset: {dataset['name']}")
+        for refresh in refresh_history['value']:
+            print(f"  Refresh Status: {refresh['status']}, Start Time: {refresh['startTime']}")

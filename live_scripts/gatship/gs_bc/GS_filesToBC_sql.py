@@ -98,9 +98,11 @@ def fetch_data_from_sql(engine):
     where H.CHANGE_DATE > convert(date, dateadd(day, -7, getdate())) and INFO = 'PortCall created'  
     order by PortCallNumber desc
     """
-    return pd.read_sql(query, engine)
+    # Use the engine to connect and fetch data
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+    return df
 
-# Function to create XML data
 def create_xml_data(row_data):
     Timestamp = datetime.datetime.now()
     DateStamp = Timestamp.strftime("%Y-%m-%d")

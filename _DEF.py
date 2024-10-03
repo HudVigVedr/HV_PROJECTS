@@ -7,6 +7,9 @@ import re
 import psutil
 import re
 from retrying import retry
+import pandas as pd
+import os
+import base64
 
 
 
@@ -17,6 +20,7 @@ def delete_sql_table(connection, sql_table):
     cursor = connection.cursor()
     cursor.execute(f"TRUNCATE TABLE {sql_table}")
     connection.commit()
+
 
 
 def generate_insert_sql(table_name, columns):
@@ -122,6 +126,78 @@ def send_email_mfa(subject, body, from_address, to_address, tenant_id, client_id
         },
         "saveToSentItems": "true",
     }
+    response = requests.post(email_url, headers=headers, data=json.dumps(email_data))
+
+    if response.status_code == 202:
+        print("Email sent successfully!")
+    else:
+        print(f"Failed to send email. Status code: {response.status_code}, Response: {response.text}")
+
+def send_email_mfa_attachment(subject, body, from_address, to_address, tenant_id, client_id, client_secret, attachment_path=None):
+    token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
+    token_data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "resource": "https://graph.microsoft.com",
+    }
+    token_response = requests.post(token_url, data=token_data)
+    access_token = token_response.json().get("access_token")
+
+    if not access_token:
+        print("Failed to get access token")
+        return
+
+    # Prepare attachment data if an attachment is provided
+    attachments = []
+    if attachment_path and os.path.isfile(attachment_path):
+        with open(attachment_path, "rb") as file:
+            attachment_content = file.read()
+
+        # Base64 encode the attachment content
+        encoded_content = base64.b64encode(attachment_content).decode("utf-8")
+
+        # Get the file name from the attachment path
+        file_name = os.path.basename(attachment_path)
+
+        # Create the attachment payload
+        attachment_payload = {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            "name": file_name,
+            "contentBytes": encoded_content,
+            "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+        attachments.append(attachment_payload)
+
+    # Send an email using Microsoft Graph API
+    email_url = f"https://graph.microsoft.com/v1.0/users/{from_address}/sendMail"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    
+    # Build email data
+    email_data = {
+        "message": {
+            "subject": subject,
+            "body": {
+                "contentType": "Text",
+                "content": body,
+            },
+            "toRecipients": [
+                {
+                    "emailAddress": {
+                        "address": email,
+                    }
+                }
+                for email in to_address
+            ],
+            "attachments": attachments if attachments else []
+        },
+        "saveToSentItems": "true",
+    }
+
+    # Send the email
     response = requests.post(email_url, headers=headers, data=json.dumps(email_data))
 
     if response.status_code == 202:
@@ -281,3 +357,14 @@ def quit_all_excel_instances():
         if process.info['name'] == 'EXCEL.EXE':
             process.terminate()  # Terminate the process
             print(f"Terminated {process}")
+
+
+def create_excel_report(mismatches, file_name):
+    """Creates an Excel report from the mismatches and saves it as file_name."""
+    # Convert mismatches to a DataFrame
+    df = pd.DataFrame(mismatches)
+    
+    # Write the DataFrame to an Excel file
+    df.to_excel(file_name, index=False)
+
+    return file_name
