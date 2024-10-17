@@ -1,9 +1,9 @@
 import requests
 
 # Replace with your actual values
-client_id = 'db16d0ab-9db0-4028-88d5-073c2550f388'
-client_secret = 'MOz8Q~KPRGsJN9UtGFIemjgVhB~zuxRhDV3Eodrw'
-tenant_id = 'cc91eaa9-c853-432b-a07d-291b2935204b'
+client_id = ''
+client_secret = ''
+tenant_id = ''
 authority_url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'
 scope = ['https://analysis.windows.net/powerbi/api/.default']
 resource = 'https://api.powerbi.com/'
