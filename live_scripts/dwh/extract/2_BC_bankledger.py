@@ -72,7 +72,7 @@ api_full = _AUTH.end_Odata_BC + "/" + "Company('"
 
 def get_max_entry_no_per_entity(connection):
     query = f"""
-        SELECT Entity, MAX{entryno}) as MaxEntryNo
+        SELECT Entity, MAX({entryno}) as MaxEntryNo
         FROM {sql_table}
         GROUP BY Entity
     """
