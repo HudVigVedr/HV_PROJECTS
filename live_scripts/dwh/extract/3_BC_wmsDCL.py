@@ -8,7 +8,7 @@ import _AUTH
 import _DEF 
 
 script_name = "BC_wmsDCL"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 script_type = "Copying" 
 
 # SQL Server connection settings

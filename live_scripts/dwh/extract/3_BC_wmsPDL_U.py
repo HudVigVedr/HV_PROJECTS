@@ -12,7 +12,7 @@ import _AUTH
 import _DEF 
 
 script_name = "BC_wmsPDL"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"

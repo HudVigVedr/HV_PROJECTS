@@ -19,7 +19,7 @@ import _DEF
 
 # Variables for logging
 script_name = "BC_wmsRecordLink2"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 # Variables for the destination table
 sql_table = "dbo.BC_wmsRecordLink2"

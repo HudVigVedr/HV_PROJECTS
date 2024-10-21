@@ -11,7 +11,7 @@ import _AUTH
 import _DEF 
 
 script_name = "BC_Vendors"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 
 # SQL Server connection settings
