@@ -14,7 +14,7 @@ import _AUTH
 import _DEF 
 
 script_name = "BC_GLentries (S)"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 
 # SQL Server connection settings
@@ -141,9 +141,11 @@ if __name__ == "__main__":
         for company_name in company_names:
             
             max_entry_no = max_entry_nos.get(company_name, 0)
-            
+            print(max_entry_no)
             #api = f"{api_full}BMA"
             api = f"{api_full}{company_name}&$filter=entryNo gt {max_entry_no}"
+            print(api)
+           
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
 
             data_to_insert = list(api_data_generator)

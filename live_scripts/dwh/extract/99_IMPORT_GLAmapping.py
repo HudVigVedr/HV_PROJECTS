@@ -13,7 +13,7 @@ import _AUTH
 import _DEF
 
 script_name = "Unique GLaccounts"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 
 # Local Excel file path

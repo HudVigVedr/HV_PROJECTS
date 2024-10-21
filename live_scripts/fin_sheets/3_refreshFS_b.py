@@ -15,7 +15,7 @@ import _AUTH
 import _DEF
 
 script_name = "Refresh finance excels"
-script_cat = "FIN"
+script_cat = "FIN_excel"
 
 #local
 #folder_path = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\B'

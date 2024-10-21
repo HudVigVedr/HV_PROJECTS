@@ -19,7 +19,7 @@ import _DEF
 
 # Variables for logging
 script_name = "BC_wmsDH_repair"
-script_cat = "DWH"
+script_cat = "DWH_repair_auto"
 
 # Variables for the destination table
 sql_table = "dbo.BC_wmsDH"

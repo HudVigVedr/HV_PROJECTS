@@ -22,7 +22,7 @@ api_table = "VoyageV3"
 api_full = api_url + "/" + api_table + _AUTH.vs_token + "&$filter=DataType eq 'A' and SnapShotType eq 'closed'"
 
 script_name = "VS_voyageV3"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 def delete_sql_table(connection):
     cursor = connection.cursor()

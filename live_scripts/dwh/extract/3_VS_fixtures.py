@@ -22,7 +22,7 @@ api_table = "whs_fixtures"
 api_full = api_url + "/" + api_table + _AUTH.vs_token
 
 script_name = "VS_fixture"
-script_cat = "DWH"
+script_cat = "DWH_extract"
 
 def delete_sql_table(connection):
     cursor = connection.cursor()
