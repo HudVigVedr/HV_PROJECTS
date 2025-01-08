@@ -21,7 +21,8 @@ sql_table = "BC_wmsRecordLink"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "wmsRecordLinks"
-api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 122) and (created gt "+ _DEF.yesterday_date +"T00:00:00Z)&company="
+api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 122) or (tableNo eq 0) and (created gt "+ _DEF.yesterday_date +"T00:00:00Z)&company="
+#api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 0)&company="
 #api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 122)&company="
 
 def record_exists(connection, no, entity):
@@ -31,68 +32,30 @@ def record_exists(connection, no, entity):
     result = cursor.fetchone()[0] > 0
     return result
 
-# Function to insert data into SQL Server
-def insert_data_into_sql(connection, data, sql_table, company_name):
-    
-    cursor = connection.cursor()
 
-
-    sql_insert = f"""
-        INSERT INTO {sql_table} (
-       [@odata_etag]
-      ,[id]
-      ,[linkId]
-      ,[filename]
-      ,[description]
-      ,[type]
-      ,[created]
-      ,[userID]
-      ,[company]
-      ,[notify]
-      ,[toUserID]
-      ,[tableNo]
-      ,[recordSystemId]
-      ,[objectType]
-      ,[objectId]
-      ,[combinationId]
-      ,[contentType]
-      ,[apiCrossColumnFilter3PL]
-      ,[apiContext3PL]
-      ,[note@odata.mediaEditLink]
-      ,[note@odata.mediaReadLink]
-      ,[Entity]
-        
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    values = [data[key]for key in data]     
-    values.append(company_name)          
-    cursor.execute(sql_insert, tuple(values))  
-
-    connection.commit()
-
-
-def delete_record(connection, doc_no, company):
-    cursor = connection.cursor()
-    sql_delete = f"""
-        DELETE FROM {sql_table}
-        WHERE [id] = ? AND [Entity] = ?
-    """
-    
-    cursor.execute(sql_delete, (doc_no, company))
-    
-    connection.commit()
-
-def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
+def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
     for item in data:
-        no = item['id']
-
-        if record_exists(connection, no, company_name):
-            print(f"Deleting existing record with No: {no} for entity: {company_name}")
-            delete_record(connection, no, company_name)
+        # Prepare the data for MERGE
+        values = [item[key] for key in item] + [company_name]
+        columns = list(item.keys()) + ["Entity"]
         
-        print(f"Inserting new record with No: {no} for entity: {company_name}")
-        insert_data_into_sql(connection, item, sql_table, company_name)
+        # Build the SQL MERGE statement
+        merge_sql = f"""
+        MERGE {sql_table} AS Target
+        USING (SELECT ? AS [{columns[0]}]""" + "".join([f", ? AS [{col}]" for col in columns[1:]]) + """) AS Source
+        ON Target.[id] = Source.[id] AND Target.[Entity] = Source.[Entity]
+        WHEN MATCHED THEN
+            UPDATE SET
+            """ + ", ".join([f"Target.[{col}] = Source.[{col}]" for col in columns[1:]]) + """
+        WHEN NOT MATCHED THEN
+            INSERT (""" + ", ".join([f"[{col}]" for col in columns]) + """)
+            VALUES (""" + ", ".join([f"Source.[{col}]" for col in columns]) + """);
+        """
+        
+        # Execute the MERGE statement
+        cursor = connection.cursor()
+        cursor.execute(merge_sql, tuple(values))
+        connection.commit()
 
 
 if __name__ == "__main__":
@@ -110,13 +73,12 @@ if __name__ == "__main__":
         for company_name in company_names:
             api = f"{api_full}{company_name}"
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
-    
+            print(api)
             data_to_insert = list(api_data_generator)
             row_count = len(data_to_insert)
 
             if row_count > threshold:
-                insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
-                #insert_data_into_sql(connection, data_to_insert, sql_table, company_name)
+                insert_or_update_data_into_sql(connection, data_to_insert, sql_table, company_name)        
                 inserted_rows = _DEF.count_rows(data_to_insert)
                 total_inserted_rows += inserted_rows
 
