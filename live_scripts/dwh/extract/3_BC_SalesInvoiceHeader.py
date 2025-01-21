@@ -10,56 +10,79 @@ sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF 
 
-script_name = "BC_wmsRecordLink"
+script_name = "BC_PurchaseInvoiceHeader"
 script_cat = "DWH_extract"
 script_type = "Copying" 
 
 # SQL Server connection settings
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
-sql_table = "BC_wmsRecordLink"
+sql_table = "BC_SalesInvoiceHeader"
 
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
-api_table = "wmsRecordLinks"
-api_full = api_url + "/" + api_table + "?" + "$filter=((tableNo eq 122) or (tableNo eq 0) or (tableNo eq 112))and (created gt "+ _DEF.yesterday_date +"T00:00:00Z)&company="
-#api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 0)&company="
-#api_full = api_url + "/" + api_table + "?" + "$filter=(tableNo eq 122)&company="
+api_table = "salesInvoiceHeaders"
+#api_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+api_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&company="
+
 
 def record_exists(connection, no, entity):
     cursor = connection.cursor()
-    query = f"SELECT COUNT(1) FROM {sql_table} WHERE [id] = ? AND [Entity] = ?"
+    query = f"SELECT COUNT(1) FROM {sql_table} WHERE [No] = ? AND [Entity] = ?"
     cursor.execute(query, (no, entity))
     result = cursor.fetchone()[0] > 0
     return result
 
+# Function to insert data into SQL Server
+def insert_data_into_sql(connection, data, sql_table, company_name):
+    
+    cursor = connection.cursor()
 
-def insert_or_update_data_into_sql(connection, data, sql_table, company_name):
+    sql_insert = f"""
+        INSERT INTO {sql_table} (
+      [OdataEtag]
+      ,[id]
+     ,[no]
+     ,[sellToCustomerNo]
+     ,[postingDate]
+     ,[preAssignedNo]
+     ,[userID]
+     ,[Entity]
+    
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    values = [data[key]for key in data]     
+    values.append(company_name)          
+    cursor.execute(sql_insert, tuple(values))  
+
+    connection.commit()
+
+
+def delete_record(connection, doc_no, company):
+    cursor = connection.cursor()
+    sql_delete = f"""
+        DELETE FROM {sql_table}
+        WHERE [no] = ? AND [Entity] = ?
+    """
+    
+    cursor.execute(sql_delete, (doc_no, company))
+    
+    connection.commit()
+
+def insert_or_delete_and_insert_data_into_sql(connection, data, sql_table, company_name):
     for item in data:
-        # Prepare the data for MERGE
-        values = [item[key] for key in item] + [company_name]
-        columns = list(item.keys()) + ["Entity"]
+        no = item['no']
+
+        if record_exists(connection, no, company_name):
+            print(f"Deleting existing record with No: {no} for entity: {company_name}")
+            delete_record(connection, no, company_name)
         
-        # Build the SQL MERGE statement
-        merge_sql = f"""
-        MERGE {sql_table} AS Target
-        USING (SELECT ? AS [{columns[0]}]""" + "".join([f", ? AS [{col}]" for col in columns[1:]]) + """) AS Source
-        ON Target.[id] = Source.[id] AND Target.[Entity] = Source.[Entity]
-        WHEN MATCHED THEN
-            UPDATE SET
-            """ + ", ".join([f"Target.[{col}] = Source.[{col}]" for col in columns[1:]]) + """
-        WHEN NOT MATCHED THEN
-            INSERT (""" + ", ".join([f"[{col}]" for col in columns]) + """)
-            VALUES (""" + ", ".join([f"Source.[{col}]" for col in columns]) + """);
-        """
-        
-        # Execute the MERGE statement
-        cursor = connection.cursor()
-        cursor.execute(merge_sql, tuple(values))
-        connection.commit()
+        print(f"Inserting new record with No: {no} for entity: {company_name}")
+        insert_data_into_sql(connection, item, sql_table, company_name)
 
 
 if __name__ == "__main__":
-    print("Incremental refresh BC_wmsRecordLink to SQL/Staging...")
+    print("Incremental refresh BC_PurchaseInvoiceHeader to SQL/Staging...")
     connection = pyodbc.connect(connection_string)
     threshold = 0
 
@@ -68,17 +91,17 @@ if __name__ == "__main__":
     total_inserted_rows = 0
 
     try:
-        company_names = _DEF.get_company_names2(connection)
+        company_names = _DEF.get_company_names(connection)
 
         for company_name in company_names:
             api = f"{api_full}{company_name}"
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
-            print(api)
+    
             data_to_insert = list(api_data_generator)
             row_count = len(data_to_insert)
 
             if row_count > threshold:
-                insert_or_update_data_into_sql(connection, data_to_insert, sql_table, company_name)        
+                insert_or_delete_and_insert_data_into_sql(connection, data_to_insert, sql_table, company_name)         
                 inserted_rows = _DEF.count_rows(data_to_insert)
                 total_inserted_rows += inserted_rows
 
