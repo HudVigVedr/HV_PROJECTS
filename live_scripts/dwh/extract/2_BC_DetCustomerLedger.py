@@ -33,7 +33,7 @@ columns_insert = [
       ,"Entry_Type"
       ,"Document_Type"
       ,"Document_No"
-      ,"Vendor_No"
+      ,"Customer_No"
       ,"Initial_Entry_Global_Dim_1"
       ,"Initial_Entry_Global_Dim_2"
       ,"Posting_Group"
@@ -50,7 +50,7 @@ columns_insert = [
       ,"Reason_Code"
       ,"Unapplied"
       ,"Unapplied_by_Entry_No"
-      ,"Vendor_Ledger_Entry_No"
+      ,"Cust_Ledger_Entry_No"
       ,"Entity"
 
 ]

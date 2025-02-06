@@ -21,8 +21,8 @@ sql_table = "BC_SalesInvoiceHeader"
 # API endpoint URL (same as before) -> aanvullen
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "salesInvoiceHeaders"
-#api_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
-api_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&company="
+api_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
+#clsapi_full = api_url + "/" + api_table + "?" + "$select=id,no,sellToCustomerNo,postingDate,preAssignedNo,userID&company="
 
 
 def record_exists(connection, no, entity):
@@ -39,7 +39,7 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
 
     sql_insert = f"""
         INSERT INTO {sql_table} (
-      [OdataEtag]
+      [odataEtag]
       ,[id]
      ,[no]
      ,[sellToCustomerNo]
@@ -51,8 +51,17 @@ def insert_data_into_sql(connection, data, sql_table, company_name):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """
 
-    values = [data[key]for key in data]     
-    values.append(company_name)          
+    values = [
+        data.get("odataEtag"),     
+        data.get("id"),
+        data.get("no"),
+        data.get("sellToCustomerNo"),
+        data.get("postingDate"),
+        data.get("preAssignedNo"),
+        data.get("userID"),
+        company_name             
+    ]    
+       
     cursor.execute(sql_insert, tuple(values))  
 
     connection.commit()
