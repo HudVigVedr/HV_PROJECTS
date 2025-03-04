@@ -1,182 +1,142 @@
-# ==> This script will skip records that already exist <==
-
-
 import requests
 import pyodbc
 import json
-import smtplib
+import sys
 from email.mime.text import MIMEText
 import time
 
-import sys
 sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
-import _DEF 
+import _DEF
 
-script_name = "BC_GLentries (S)"
+script_name = "BC_GLentries_Bulk"
 script_cat = "DWH_extract"
-
+script_type = "Copying"
 
 # SQL Server connection settings
-connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
+connection_string = (
+    f"DRIVER=ODBC Driver 17 for SQL Server;"
+    f"SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
+)
 
-sql_table = "dbo.BC_GLentries"
+# Target and staging tables
+target_table = "BC_GLentries"
+staging_table = "_staging_" + target_table
 entryno = "entryNo"
 
-# API endpoint URL 
+# API endpoint
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-#api_full = api_url + "/" + api_table + "?$filter=systemModifiedAt gt "+ _DEF.yesterday_date +"T00:00:00Z&company="
-api_full = api_url + "/" + api_table + "?company="
+api_full = f"{api_url}/{api_table}?company="
 
-columns_insert = ["[@odata.etag]"
-            ,"id"
-            ,"systemCreatedAt"
-            ,"systemCreatedBy"
-            ,"systemModifiedAt"
-            ,"systemModifiedBy"
-            ,"entryNo"
-            ,"gLAccountNo"
-            ,"postingDate"
-            ,"documentType"
-            ,"documentNo"
-            ,"description"
-            ,"balAccountNo"
-            ,"amount"
-            ,"globalDimension1Code"
-            ,"globalDimension2Code"
-            ,"userID"
-            ,"sourceCode"
-            ,"systemCreatedEntry"
-            ,"priorYearEntry"
-            ,"jobNo"
-            ,"quantity"
-            ,"vatAmount"
-            ,"businessUnitCode"
-            ,"journalBatchName"
-            ,"reasonCode"
-            ,"genPostingType"
-            ,"genBusPostingGroup"
-            ,"genProdPostingGroup"
-            ,"balAccountType"
-            ,"transactionNo"
-            ,"debitAmount"
-            ,"creditAmount"
-            ,"documentDate"
-            ,"externalDocumentNo"
-            ,"sourceType"
-            ,"sourceNo"
-            ,"noSeries"
-            ,"taxAreaCode"
-            ,"taxLiable"
-            ,"taxGroupCode"
-            ,"useTax"
-            ,"vatBusPostingGroup"
-            ,"vatProdPostingGroup"
-            ,"additionalCurrencyAmount"
-            ,"addCurrencyDebitAmount"
-            ,"addCurrencyCreditAmount"
-            ,"closeIncomeStatementDimID"
-            ,"icPartnerCode"
-            ,"reversed"
-            ,"reversedByEntryNo"
-            ,"reversedEntryNo"
-            ,"gLAccountName"
-            ,"journalTemplName"
-            ,"dimensionSetID"
-            ,"shortcutDimension3Code"
-            ,"shortcutDimension4Code"
-            ,"shortcutDimension5Code"
-            ,"shortcutDimension6Code"
-            ,"shortcutDimension7Code"
-            ,"shortcutDimension8Code"
-            ,"lastDimCorrectionEntryNo"
-            ,"lastDimCorrectionNode"
-            ,"dimensionChangesCount"
-            ,"prodOrderNo"
-            ,"faEntryType"
-            ,"faEntryNo"
-            ,"comment"
-            ,"accountId"
-            ,"lastModifiedDateTime"
-            ,"documentLineNo3PL"
-            ,"wmsDocumentType"
-            ,"wmsDocumentNo"
-            ,"wmsDocumentLineNo"
-            ,"tmsDocumentType"
-            ,"tmsDocumentNo"
-            ,"tmsDocumentSequenceNo"
-            ,"tmsDocumentLineNo"
-            ,"ultimo"
-            ,"Entity" ]
+columns_insert = [
+    "id", "systemCreatedAt", "systemModifiedAt", "entryNo", "gLAccountNo", "postingDate",
+    "documentType", "documentNo", "description", "balAccountNo", "amount", "globalDimension1Code",
+    "globalDimension2Code", "userID", "sourceCode", "systemCreatedEntry", "priorYearEntry", "jobNo",
+    "quantity", "vatAmount", "businessUnitCode", "journalBatchName", "reasonCode", "genPostingType",
+    "genBusPostingGroup", "genProdPostingGroup", "balAccountType", "transactionNo", "debitAmount",
+    "creditAmount", "documentDate", "externalDocumentNo", "sourceType", "sourceNo", "noSeries",
+    "taxAreaCode", "taxLiable", "taxGroupCode", "useTax", "vatBusPostingGroup", "vatProdPostingGroup",
+    "additionalCurrencyAmount", "addCurrencyDebitAmount", "addCurrencyCreditAmount", "Entity"
+]
 
-def get_max_entry_no_per_entity(connection):
-    query = f"""
-        SELECT Entity, MAX({entryno}) as MaxEntryNo
-        FROM {sql_table}
-        GROUP BY Entity
+
+def bulk_insert_staging(connection, data, staging_table, company_name):
+    """Bulk inserts data into the staging table."""
+    if not data:
+        return
+    
+    columns = list(data[0].keys()) + ["Entity"]
+    placeholders = ", ".join(["?"] * len(columns))
+    columns_sql = ", ".join([f"[{col}]" for col in columns])
+    insert_sql = f"INSERT INTO {staging_table} ({columns_sql}) VALUES ({placeholders})"
+    
+    values = [[item[col] for col in data[0].keys()] + [company_name] for item in data]
+    cursor = connection.cursor()
+    cursor.executemany(insert_sql, values)
+    connection.commit()
+
+
+def merge_staging_to_target(connection, staging_table, target_table, columns):
+    """Merges data from staging into the target table."""
+    update_columns = [col for col in columns if col not in ("id", "Entity")]
+    
+    merge_sql = f"""
+    MERGE {target_table} AS Target
+    USING {staging_table} AS Source
+    ON Target.[id] = Source.[id] AND Target.[Entity] = Source.[Entity]
+    WHEN MATCHED THEN
+        UPDATE SET {", ".join([f"Target.[{col}] = Source.[{col}]" for col in update_columns])}
+    WHEN NOT MATCHED THEN
+        INSERT ({", ".join([f"[{col}]" for col in columns])})
+        VALUES ({", ".join([f"Source.[{col}]" for col in columns])});
     """
     cursor = connection.cursor()
-    cursor.execute(query)
-    results = cursor.fetchall()
-    
-    # Convert results to a dictionary for easy lookup
-    return {row[0]: row[1] for row in results}
+    cursor.execute(merge_sql)
+    connection.commit()
 
+
+def truncate_staging(connection, staging_table):
+    """Truncates the staging table."""
+    cursor = connection.cursor()
+    cursor.execute(f"TRUNCATE TABLE {staging_table}")
+    connection.commit()
+
+
+def get_max_entry_no_per_entity(connection):
+    """Fetches the maximum entryNo per entity from the target table."""
+    query = f"SELECT Entity, MAX({entryno}) as MaxEntryNo FROM {target_table} GROUP BY Entity"
+    cursor = connection.cursor()
+    cursor.execute(query)
+    return {row[0]: row[1] for row in cursor.fetchall()}
 
 
 if __name__ == "__main__":
-    print("Incremental refresh BC_GLentries to SQL/Staging...")
+    print("Bulk loading BC_GLentries into staging and merging to target table...")
     connection = pyodbc.connect(connection_string)
-    threshold = 0
-
     start_time = _DEF.datetime.now()
     overall_status = "Success"
-    total_inserted_rows = 0
+    total_rows = 0
 
     try:
+        truncate_staging(connection, staging_table)
+        
         company_names = _DEF.get_company_names(connection)
         max_entry_nos = get_max_entry_no_per_entity(connection)
-
+        first_data = True
+        columns = []
+        
         for company_name in company_names:
-            
             max_entry_no = max_entry_nos.get(company_name, 0)
-            print(max_entry_no)
-            #api = f"{api_full}BMA"
             api = f"{api_full}{company_name}&$filter=entryNo gt {max_entry_no}"
             print(api)
-           
+            
             api_data_generator = _DEF.make_api_request(api, _AUTH.client_id, _AUTH.client_secret, _AUTH.token_url)
-
             data_to_insert = list(api_data_generator)
             row_count = len(data_to_insert)
-
-            if row_count > threshold:
-                _DEF.insert_data_into_sql(connection, data_to_insert, sql_table, company_name, columns_insert)
-                inserted_rows = _DEF.count_rows(data_to_insert)  # Assuming all rows are successfully inserted
-                total_inserted_rows += inserted_rows
-
-                if inserted_rows != row_count:
-                    overall_status = "Error"
-                    error_details = f"Expected to insert {row_count} rows, but only {inserted_rows} were inserted."
-                    _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), row_count - inserted_rows, error_details, company_name, api)
-
-                    _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)    
-
-
+            
+            if row_count > 0:
+                total_rows += row_count
+                if first_data and data_to_insert:
+                    columns = list(data_to_insert[0].keys()) + ["Entity"]
+                    first_data = False
+                bulk_insert_staging(connection, data_to_insert, staging_table, company_name)
+        
+        if total_rows > 0:
+            merge_staging_to_target(connection, staging_table, target_table, columns)
+            truncate_staging(connection, staging_table)
+        else:
+            print("No data found to process.")
+        
     except Exception as e:
         overall_status = "Error"
         error_details = str(e)
         print(f"An error occurred: {e}")
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), 0, error_details, "None", "N/A")
-
-        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)    
-
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), 0, error_details, "None", "N/A")
+        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+    
     finally:
         if overall_status == "Success":
-            success_message = f"Total rows inserted: {total_inserted_rows}."
-            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), total_inserted_rows, success_message, "All", "N/A")
-
-        elif overall_status == "Error":
-            # Additional logging for error scenario can be added here if needed
-            pass
+            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(),int((_DEF.datetime.now() - start_time).total_seconds() / 60),total_rows, f"Total rows processed: {total_rows}.", "All", "N/A")
+            #_DEF.log_status(connection, "Success", script_cat, script_name, start_time, _DEF.datetime.now(), int((_DEF.datetime.now() - start_time).total_seconds() / 60), total_inserted_rows, success_message, "All", "N/A")
+        connection.close()
