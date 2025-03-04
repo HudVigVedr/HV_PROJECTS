@@ -286,9 +286,10 @@ def bulk_insert_staging(connection, data, staging_table, company_name, columns):
     if not data:
         return
     placeholders = ", ".join(["?"] * len(columns))
-    columns_sql = ", ".join([f"[{col}]" for col in columns])
+    columns_sql = ', '.join(columns)
     insert_sql = f"INSERT INTO {staging_table} ({columns_sql}) VALUES ({placeholders})"
-    
+
+
     values = []
     for item in data:
         row = []
@@ -309,6 +310,8 @@ def insert_staging_to_target(connection, staging_table, target_table, columns):
     selecting all columns in the defined order.
     """
     columns_sql = ", ".join([f"[{col}]" for col in columns])
+    columns_sql = ", ".join([f"\"{col}\"" if "@" in col else f"[{col}]" for col in columns])
+
     sql_insert = f"INSERT INTO {target_table} ({columns_sql}) SELECT {columns_sql} FROM {staging_table}"
     cursor = connection.cursor()
     cursor.execute(sql_insert)
@@ -339,6 +342,7 @@ if __name__ == "__main__":
             row_count = len(data_to_insert)
             
             if row_count > threshold:
+
                 bulk_insert_staging(connection, data_to_insert, staging_table, company_name, columns_insert)
                 total_inserted_rows += row_count
                 print(f"Inserted {row_count} rows for company {company_name} into staging.")
