@@ -20,7 +20,7 @@ connection_string = (
     f"SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 )
 target_table = "BC_wmsRecordLink"
-staging_table = target_table + "_staging_"  # staging table
+staging_table = + "_staging_" + target_table   # staging table
 
 # API endpoint URL
 api_url = _AUTH.end_REST_BOLTRICS_BC

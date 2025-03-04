@@ -209,7 +209,7 @@ def bulk_insert_staging(connection, data, staging_table, company_name, columns):
     if not data:
         return
     placeholders = ", ".join(["?"] * len(columns))
-    columns_sql = ", ".join([f"[{col}]" for col in columns])
+    columns_sql = ', '.join(columns)
     insert_sql = f"INSERT INTO {staging_table} ({columns_sql}) VALUES ({placeholders})"
     
     values = []
