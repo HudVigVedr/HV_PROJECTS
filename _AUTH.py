@@ -42,7 +42,7 @@ password_gs = config['SERVER_CRED']['password_gs']
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={server};DATABASE={database};UID={username};PWD={password}"
 
 #mail credentials
-email_username = config['EMAIL_CRED']['email_username']
+guid_blink = config['EMAIL_CRED']['email_username']
 email_recipient = ["thom@blinksolutions.nl"]
 email_sender = "bs-bugreport@blinksolutions.nl"
 smtp_server = "smtp.office365.com"

@@ -22,7 +22,6 @@ def delete_sql_table(connection, sql_table):
     connection.commit()
 
 
-
 def generate_insert_sql(table_name, columns):
     placeholders = ', '.join(['?'] * len(columns))
     column_names = ', '.join(columns)
@@ -260,6 +259,40 @@ def make_api_request(api_base, client_id, client_secret, token_url, params=None)
         except Exception as e:
             print(f"Error making API request for {next_link}: {e}")
             next_link = None
+
+def make_api_request_list(api_base, client_id, client_secret, token_url, params=None):
+    access_token = get_access_token(client_id, client_secret, token_url)
+    if params is None:
+        params = {}
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    next_link = api_base
+    all_entries = []  # Collect all results into a list
+    while next_link:
+        response = requests.get(next_link, headers=headers, params=params)
+        try:
+            response.raise_for_status()
+            data = response.json()
+            next_link = data.get('@odata.nextLink')
+            entries = data.get('value', [])
+            all_entries.extend(entries)  # Store all results
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 401:
+                print("Token expired. Requesting new token...")
+                access_token = get_access_token(client_id, client_secret, token_url)
+                headers['Authorization'] = f'Bearer {access_token}'
+            else:
+                print(f"HTTP error making API request for {next_link}: {e}")
+                next_link = None
+        except Exception as e:
+            print(f"Error making API request for {next_link}: {e}")
+            next_link = None
+    return all_entries  # Return the full list instead of yielding
+
+
+
 
 @retry(stop_max_attempt_number=10, wait_fixed=1000) 
 def make_api_request_count(api_base, client_id, client_secret, token_url, params=None):
