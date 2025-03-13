@@ -228,9 +228,11 @@ def bulk_insert_staging(connection, data, staging_table, company_name, columns):
 
 def insert_staging_to_target(connection, staging_table, target_table, columns):
     """
-    Performs a set-based INSERT from the staging table into the target table.
+    Performs a set-based INSERT from the staging table into the target table,
+    selecting all columns in the defined order.
     """
-    columns_sql = ", ".join([f"[{col}]" for col in columns])
+    columns_sql = ", ".join([f"[{col}]" if "@" not in col else f"\"{col}\"" for col in columns])
+
     sql_insert = f"INSERT INTO {target_table} ({columns_sql}) SELECT {columns_sql} FROM {staging_table}"
     cursor = connection.cursor()
     cursor.execute(sql_insert)

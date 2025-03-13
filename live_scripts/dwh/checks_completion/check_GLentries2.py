@@ -13,6 +13,7 @@ import _DEF
 script_name = "Check Mutations"
 script_cat = "DWH_checks"
 
+
 # SQLAlchemy Engine Setup
 engine = create_engine(
     f"mssql+pyodbc://{_AUTH.username}:{_AUTH.password}@{_AUTH.server}/{_AUTH.database}?driver=ODBC+Driver+17+for+SQL+Server",

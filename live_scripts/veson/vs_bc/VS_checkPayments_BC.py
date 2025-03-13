@@ -135,11 +135,38 @@ if __name__ == "__main__":
                 org_amount = invoice['Amount Curr']
                 
                 # Determine the endpoint type for status check
-                status_endpoint_company = "Hartel" if "VLIE" in exact_trans_no else "Chartering"
+                
+                if "VLIE" in exact_trans_no:
+                    status_endpoint_company = "Hartel"
+                elif "HNV" in exact_trans_no:
+                    status_endpoint_company = "Chartering"
+                elif "COA" in exact_trans_no:
+                    status_endpoint_company = "Chartering"        
+                elif "MAAS" in exact_trans_no:
+                    status_endpoint_company = "Geervliet"
+                elif "IIVLIE" in exact_trans_no:
+                    status_endpoint_company = "Vliet2"
+                else:
+                    status_endpoint_company = None 
+
                 invoice_endpoint_table = "salesInvoiceHeaders" if invoice_no.startswith("1") else "purchaseInvoiceHeaders"
             
+                #company_code = "VLIET" if "VLIE" in exact_trans_no else "HNV BV"
 
-                company_code = "VLIET" if "VLIE" in exact_trans_no else "HNV BV"
+                if "VLIE" in exact_trans_no:
+                     company_code = "VLIET"
+                elif "HNV" in exact_trans_no:
+                     company_code = "HNV BV"
+                elif "COA" in exact_trans_no:
+                     company_code = "COASTA"     
+                elif "MAAS" in exact_trans_no:
+                     company_code = "MAASVL"  
+                elif "IIVL" in exact_trans_no:
+                     company_code = "IIVLIE"       
+         
+                else:
+                    company_code = None 
+
                 
                 if currency == 'EUR':
                         ledger_code = 19200
@@ -198,6 +225,10 @@ if __name__ == "__main__":
                          company_code_xml = "HNV BV"  
                     elif "COA" in exact_trans_no:
                          company_code_xml = "COASTA"
+                    elif "MAAS" in exact_trans_no:
+                         company_code_xml = "MAASVL"
+                    elif "IIVL" in exact_trans_no:
+                         company_code_xml = "IIVLIE"     
                     else:
                         company_code_xml = None 
 
@@ -215,7 +246,7 @@ if __name__ == "__main__":
                         bankCode=str(ledger_code),
                         companyCode=company_code_xml
                     )
-                    #print(xml_data)
+                    print(xml_data)
                     send_xml_data(endpoint_xml, xml_data)
                     #print(invoice_no)
                     #xml_file_path = "test_xml_data.txt"  
