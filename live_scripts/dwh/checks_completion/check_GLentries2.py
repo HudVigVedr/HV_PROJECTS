@@ -27,7 +27,7 @@ engine_datamart = create_engine(
 # API endpoint URL
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerAccounts"
-api_full = f"{api_url}/{api_table}?$select=no,balance&company="
+api_full = f"{api_url}/{api_table}?$select=no,balance&$filter=apiAccountType eq 'Posting'&company="
 
 
 def truncate_check_mutations():
@@ -123,12 +123,12 @@ def send_mismatch_report():
         file_path = export_to_excel(df_mismatches)
 
         # Email details
-        subject = "🔍 Check Mutations Report – Deviations Found"
-        body = "Dear team,\n\nAttached is the report containing all detected deviations.\n\nBest regards,\nYour Automation Script"
+        subject = "🔍 Check Mutations Report – afwijkingen gevonden"
+        body = "Goedemorgen,\n\nZie bijgaand een rapport met alle afwijkingen van de mutatie check tussen BC, DWH-Staging & DWH-Datamart.\n\nMvg,\nThom"
 
         # Email details from _AUTH
         from_address = _AUTH.email_sender
-        to_address = ["thom@blinksolutions.nl"]  # Replace with the recipient's email(s)
+        to_address = ["thom@blinksolutions.nl", "p.schijff@hudigveder.nl"]  # Replace with the recipient's email(s)
         tenant_id = _AUTH.guid_blink
         client_id = _AUTH.email_client_id 
         client_secret = _AUTH.email_client_secret
