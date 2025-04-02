@@ -305,13 +305,18 @@ def bulk_insert_staging(connection, data, staging_table, company_name, columns):
     connection.commit()
 
 def insert_staging_to_target(connection, staging_table, target_table, columns):
-    """
-    Performs a set-based INSERT from the staging table into the target table,
-    selecting all columns in the defined order.
-    """
-    columns_sql = ", ".join([f"[{col}]" if "@" not in col else f"\"{col}\"" for col in columns])
+
+    # Define columns to skip
+    skip_columns = {"[@odata.etag]"}
+
+    # Filter out unwanted columns
+    filtered_columns = [col for col in columns if col not in skip_columns]
+
+    # Format columns for SQL
+    columns_sql = ", ".join([f"[{col}]" for col in filtered_columns])
 
     sql_insert = f"INSERT INTO {target_table} ({columns_sql}) SELECT {columns_sql} FROM {staging_table}"
+
     cursor = connection.cursor()
     cursor.execute(sql_insert)
     connection.commit()
