@@ -27,7 +27,8 @@ entryno = "entryNo"
 # API endpoint
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-api_full = f"{api_url}/{api_table}?company="
+select = "$select=id,systemCreatedAt,systemModifiedAt,entryNo,gLAccountNo,postingDate,documentType,documentNo,description,balAccountNo,amount,globalDimension1Code,globalDimension2Code,userID,sourceCode,systemCreatedEntry,priorYearEntry,jobNo,quantity,vatAmount,businessUnitCode,journalBatchName,reasonCode,genPostingType,genBusPostingGroup,genProdPostingGroup,balAccountType,transactionNo,debitAmount,creditAmount,documentDate,externalDocumentNo,sourceType,sourceNo,noSeries,taxAreaCode,taxLiable,taxGroupCode,useTax,vatBusPostingGroup,vatProdPostingGroup,additionalCurrencyAmount,addCurrencyDebitAmount,addCurrencyCreditAmount"
+api_full = f"{api_url}/{api_table}?{select}&company="
 
 columns_insert = [
     "id", "systemCreatedAt", "systemModifiedAt", "entryNo", "gLAccountNo", "postingDate",
@@ -132,7 +133,7 @@ if __name__ == "__main__":
         overall_status = "Error"
         error_details = str(e)
         print(f"An error occurred: {e}")
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), 0, error_details, "None", "N/A")
+        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, _DEF.datetime.now(), 0, error_details, "None", company_name,"N/A")
         _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
     
     finally:
