@@ -13,12 +13,12 @@ import _DEF
 script_name = "Refresh finance excels"
 script_cat = "FIN_excel"
 
-folder_path = r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\C'
-destination_folder = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\C'
+#folder_path = r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\A'
+#destination_folder = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\A'
 
 #local
-#folder_path = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\A'
-#destination_folder = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\A'
+folder_path = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\A'
+destination_folder = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\A'
 
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
@@ -57,7 +57,6 @@ def refresh_and_copy_files(folder_path, destination_folder):
     excel.Visible = False
     excel.AskToUpdateLinks = False
     excel.AlertBeforeOverwriting = False
-    excel.AutomationSecurity = 1
 
     try:
         for file_name in os.listdir(folder_path):
@@ -111,14 +110,14 @@ if __name__ == "__main__":
             overall_status = "Error"
             for fname, err in errors:
                 msg = f"Error in file {fname}: {err}"
-                _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
+                _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "folder", full_uri)
                 _DEF.send_email_mfa(f"ErrorLog -> {script_name}", msg, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
 
         if overall_status == "Success":
-            _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
+            _DEF.log_status(conn, "Success", script_cat, script_name, start, datetime.datetime.now(), 0, "All files processed successfully", "All", full_uri)
 
     except Exception as e:
         msg = f"Script crash: {e}"
         safe_log_fallback(msg)
-        _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
+        #_DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", full_uri)
         _DEF.send_email_mfa(f"Script Crash -> {script_name}", msg, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
