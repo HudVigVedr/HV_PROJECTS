@@ -1,15 +1,11 @@
 import os
 import datetime
-import logging
 import shutil
-from contextlib import contextmanager
 import win32com.client as win32
-import pythoncom
 import pyodbc
 import sys
 import time
 
-import sys
 sys.path.append('C:/Python/HV_PROJECTS')
 import _AUTH
 import _DEF
@@ -17,168 +13,112 @@ import _DEF
 script_name = "Refresh finance excels"
 script_cat = "FIN_excel"
 
-#local
-#folder_path = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\A'
-#destination_folder = r'C:\Users\ThomLems\Hudig & Veder\Rapportage - Documents\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\A'
-
-#server
 folder_path = r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\A'
 destination_folder = r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\A'
 
+#local
+#folder_path = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\A'
+#destination_folder = r'C:\Users\ThomLemsBlinkSolutio\Hudig & Veder\Rapportage - Documenten\Original\Afdelingen\Finance\FS sheet\FS - uitgerold\Refreshed Fin sheets\A'
+
 connection_string = f"DRIVER=ODBC Driver 17 for SQL Server;SERVER={_AUTH.server};DATABASE={_AUTH.database};UID={_AUTH.username};PWD={_AUTH.password}"
 
-def delete_old_files(destination_folder):
-    current_date = datetime.datetime.now()
-    retention_period = datetime.timedelta(days=31)
-    cutoff_date = current_date - retention_period  # Files older than this will be deleted
+def safe_log_fallback(message):
+    with open("fallback_log.txt", "a", encoding="utf-8") as f:
+        f.write(f"{datetime.datetime.now()} | {message}\n")
 
+def delete_old_files(destination_folder):
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=31)
     for filename in os.listdir(destination_folder):
         file_path = os.path.join(destination_folder, filename)
-        # Get the file's creation time
-        creation_time = os.path.getctime(file_path)
-        creation_date = datetime.datetime.fromtimestamp(creation_time)
-        if creation_date < cutoff_date:
+        if os.path.getctime(file_path) < cutoff.timestamp():
             try:
                 os.remove(file_path)
                 print(f"Deleted old file: {file_path}")
             except Exception as e:
-                print(f"Error occurred while deleting old file: {file_path}")
+                print(f"Error deleting: {file_path} -> {e}")
 
+def is_excel_file_valid(file_path):
+    try:
+        test_excel = win32.gencache.EnsureDispatch('Excel.Application')
+        test_excel.DisplayAlerts = False
+        wb = test_excel.Workbooks.Open(file_path, CorruptLoad=2)
+        wb.Close(False)
+        test_excel.Quit()
+        return True
+    except Exception:
+        return False
 
 def refresh_and_copy_files(folder_path, destination_folder):
-
-    # Refresh data connections and copy files
-    successful_files = []
-    error_files = []
     refreshed_files = []
+    error_files = []
 
-    #Create an instance of the Excel application
     excel = win32.gencache.EnsureDispatch('Excel.Application')
-
-    for file_name in os.listdir(folder_path):
-        if file_name.endswith('.xlsm'):
-            try:
-                current_date = datetime.datetime.now().strftime('%d%m%Y')
-
-                # Append the current date to the original file name, preserving the extension
-                base_file_name, extension = os.path.splitext(file_name)
-                dated_file_name = f"{base_file_name}_{current_date}{extension}"
-
-                file_path = os.path.join(folder_path, file_name)
-                destination_path = os.path.join(destination_folder, dated_file_name)
-
-                # Open the workbook
-                wb = excel.Workbooks.Open(file_path)
-                #logger.info(f"Opened workbook: {file_path}")
-
-                # Refresh data connections
-                #ws = wb.Worksheets(1)
-                #ws.Range('S5').Value = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')  # Adding a timestamp
-
-                excel.Application.Run("Module1.DataRefresh")
-                time.sleep(5)  # Wait for 1 second
-
-                wb.Save()
-                wb.Close()
-
-                # Append the file path to refreshed_files
-                refreshed_files.append((file_path, destination_path))
-
-            except Exception as e:
-                error_files.append((file_name, str(e)))
-                #logger.exception(f"Error occurred while processing file: {file_path}")
-
-    # Quit the Excel application
-    os.system("taskkill /f /im EXCEL.EXE")
-
-
-    # After all files have been refreshed, start copying them one by one
-    for file_path, destination_path in refreshed_files:
-        try:
-            shutil.copy(file_path, destination_path)
-            successful_files.append(file_path)
-            #logger.info(f"Copied and protected file: {file_path}")
-        except Exception as e:
-            error_files.append((file_path, str(e)))
-            #logger.exception(f"Error occurred while copying file: {file_path}")
-
-    return successful_files, error_files
-
-
-if __name__ == "__main__":
-
-    _DEF.quit_all_excel_instances()
-    # Configure logging
-    #logging.basicConfig(filename='log.log', level=logging.DEBUG)
-    #logger = logging.getLogger(__name__)
-
-    connection = pyodbc.connect(connection_string)
-
-    # Capture the start time
-    start_time = datetime.datetime.now()
-
-    print("FS files processing...")
-
-    # Initialize variables
-    overall_status = "Success"
-    full_uri = "N/A"  
+    excel.DisplayAlerts = False
+    excel.Visible = False
+    excel.AskToUpdateLinks = False
+    excel.AlertBeforeOverwriting = False
+    excel.AutomationSecurity = 1
 
     try:
-        # Define folder paths for processing
-        folders = {
-            "folder": (folder_path, destination_folder),
-        }
+        for file_name in os.listdir(folder_path):
+            if file_name.endswith(".xlsm"):
+                file_path = os.path.join(folder_path, file_name)
 
-        for folder_name, (folder_path, destination_folder) in folders.items():
-            current_time = datetime.datetime.now()
-            elapsed_time = (current_time - start_time).total_seconds()
-            if elapsed_time > 600: 
-                raise TimeoutError("Script execution exceeded 10 minutes.")
+                if not is_excel_file_valid(file_path):
+                    error_files.append((file_name, "Corrupted or unreadable Excel file"))
+                    continue
 
-            os.makedirs(destination_folder, exist_ok=True)
-            delete_old_files(destination_folder)
+                try:
+                    current_date = datetime.datetime.now().strftime('%d%m%Y')
+                    base_name, ext = os.path.splitext(file_name)
+                    dated_file = f"{base_name}_{current_date}{ext}"
+                    dest_path = os.path.join(destination_folder, dated_file)
 
+                    wb = excel.Workbooks.Open(file_path)
+                    excel.Application.Run("Module1.DataRefresh")
+                    time.sleep(3)
+                    wb.Save()
+                    wb.Close()
+                    shutil.copy(file_path, dest_path)
+                    refreshed_files.append(dest_path)
+                except Exception as e:
+                    error_files.append((file_name, str(e)))
+    finally:
+        excel.Quit()
+        del excel
 
-            successful_files, error_files = refresh_and_copy_files(folder_path, destination_folder)
+    return refreshed_files, error_files
 
+if __name__ == "__main__":
+    _DEF.quit_all_excel_instances()
+    try:
+        conn = pyodbc.connect(connection_string)
+    except Exception as e:
+        safe_log_fallback(f"Database connectie fout: {e}")
+        sys.exit(1)
 
-            if error_files:
-                    overall_status = "Error"
-                    for file_name, error in error_files:
-                        error_details = f"Error in file {file_name}: {error}"
-                        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
-                                        datetime.datetime.now(), 
-                                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
-                                        1, error_details, folder_name, full_uri)
+    start = datetime.datetime.now()
+    overall_status = "Success"
+    full_uri = "N/A"
 
-                        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+    try:
+        os.makedirs(destination_folder, exist_ok=True)
+        delete_old_files(destination_folder)
 
+        refreshed, errors = refresh_and_copy_files(folder_path, destination_folder)
+
+        if errors:
+            overall_status = "Error"
+            for fname, err in errors:
+                msg = f"Error in file {fname}: {err}"
+                _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
+                _DEF.send_email_mfa(f"ErrorLog -> {script_name}", msg, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
 
         if overall_status == "Success":
-            # Log a success entry if no errors were found in any folder
-            _DEF.log_status(connection, "Success", script_cat, script_name, start_time, 
-                            datetime.datetime.now(), 
-                            int((datetime.datetime.now() - start_time).total_seconds() / 60), 
-                            0, "No errors found in any folder", "All", full_uri)
+            _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
 
-    except TimeoutError as te:
-        overall_status = "Error"
-        error_details = str(te)
-        # Log the timeout error
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
-                        datetime.datetime.now(), 
-                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
-                        0, error_details, "N/A", full_uri)
-        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
-
-    
     except Exception as e:
-        # Catch-all for any unexpected errors in the script
-        overall_status = "Error"
-        error_details = str(e)
-        _DEF.log_status(connection, "Error", script_cat, script_name, start_time, 
-                        datetime.datetime.now(), 
-                        int((datetime.datetime.now() - start_time).total_seconds() / 60), 
-                        0, error_details, "N/A", full_uri)
-
-        _DEF.send_email_mfa(f"ErrorLog -> {script_name} / {script_cat}", error_details,  _AUTH.email_sender,  _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)
+        msg = f"Script crash: {e}"
+        safe_log_fallback(msg)
+        _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A" ,full_uri)
+        _DEF.send_email_mfa(f"Script Crash -> {script_name}", msg, _AUTH.email_sender, _AUTH.email_recipient, _AUTH.guid_blink, _AUTH.email_client_id, _AUTH.email_client_secret)

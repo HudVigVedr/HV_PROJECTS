@@ -1,0 +1,4 @@
+2025-06-24 11:08:23.616618 | Script crash: [WinError 5] Toegang geweigerd: 'C:\\Users\\ThomLems'
+2025-06-24 11:08:50.995062 | Script crash: [WinError 5] Toegang geweigerd: 'C:\\Users\\ThomLems'
+2025-06-24 11:18:08.390888 | Script crash: (-2147418111, 'Aanroep geweigerd door aangeroepene.', None, None)
+2025-06-24 11:38:15.322447 | Script crash: log_status() missing 1 required positional argument: 'URi'
