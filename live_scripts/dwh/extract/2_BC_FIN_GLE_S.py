@@ -27,18 +27,28 @@ entryno = "entryNo"
 # API endpoint
 api_url = _AUTH.end_REST_BOLTRICS_BC
 api_table = "generalLedgerEntries"
-select = "$select=id,systemCreatedAt,systemModifiedAt,entryNo,gLAccountNo,postingDate,documentType,documentNo,description,balAccountNo,amount,globalDimension1Code,globalDimension2Code,userID,sourceCode,systemCreatedEntry,priorYearEntry,jobNo,quantity,vatAmount,businessUnitCode,journalBatchName,reasonCode,genPostingType,genBusPostingGroup,genProdPostingGroup,balAccountType,transactionNo,debitAmount,creditAmount,documentDate,externalDocumentNo,sourceType,sourceNo,noSeries,taxAreaCode,taxLiable,taxGroupCode,useTax,vatBusPostingGroup,vatProdPostingGroup,additionalCurrencyAmount,addCurrencyDebitAmount,addCurrencyCreditAmount"
+select = "$select=id,systemCreatedAt,systemCreatedBy,systemModifiedAt,systemModifiedBy,entryNo,gLAccountNo,postingDate,documentType,documentNo,description,balAccountNo,amount,globalDimension1Code,globalDimension2Code,userID,sourceCode,systemCreatedEntry,priorYearEntry,jobNo,quantity,vatAmount,businessUnitCode,journalBatchName,reasonCode,genPostingType,genBusPostingGroup,genProdPostingGroup,balAccountType,transactionNo,debitAmount,creditAmount,documentDate,externalDocumentNo,sourceType,sourceNo,noSeries,taxAreaCode,taxLiable,taxGroupCode,useTax,vatBusPostingGroup,vatProdPostingGroup,additionalCurrencyAmount,addCurrencyDebitAmount,addCurrencyCreditAmount,closeIncomeStatementDimID,icPartnerCode,reversed,reversedByEntryNo,reversedEntryNo,gLAccountName,journalTemplName,dimensionSetID,shortcutDimension3Code,shortcutDimension4Code,shortcutDimension5Code,shortcutDimension6Code,shortcutDimension7Code,shortcutDimension8Code,lastDimCorrectionEntryNo,lastDimCorrectionNode,dimensionChangesCount,prodOrderNo,faEntryType,faEntryNo,comment,accountId,lastModifiedDateTime,documentLineNo3PL,wmsDocumentType,wmsDocumentNo,wmsDocumentLineNo,tmsDocumentType,tmsDocumentNo,tmsDocumentSequenceNo,tmsDocumentLineNo,ultimo"
 api_full = f"{api_url}/{api_table}?{select}&company="
 
 columns_insert = [
-    "id", "systemCreatedAt", "systemModifiedAt", "entryNo", "gLAccountNo", "postingDate",
-    "documentType", "documentNo", "description", "balAccountNo", "amount", "globalDimension1Code",
-    "globalDimension2Code", "userID", "sourceCode", "systemCreatedEntry", "priorYearEntry", "jobNo",
-    "quantity", "vatAmount", "businessUnitCode", "journalBatchName", "reasonCode", "genPostingType",
-    "genBusPostingGroup", "genProdPostingGroup", "balAccountType", "transactionNo", "debitAmount",
-    "creditAmount", "documentDate", "externalDocumentNo", "sourceType", "sourceNo", "noSeries",
-    "taxAreaCode", "taxLiable", "taxGroupCode", "useTax", "vatBusPostingGroup", "vatProdPostingGroup",
-    "additionalCurrencyAmount", "addCurrencyDebitAmount", "addCurrencyCreditAmount", "Entity"
+
+    "id", "systemCreatedAt", "systemCreatedBy", "systemModifiedAt", "systemModifiedBy",
+    "entryNo", "gLAccountNo", "postingDate", "documentType", "documentNo", "description",
+    "balAccountNo", "amount", "globalDimension1Code", "globalDimension2Code", "userID",
+    "sourceCode", "systemCreatedEntry", "priorYearEntry", "jobNo", "quantity", "vatAmount",
+    "businessUnitCode", "journalBatchName", "reasonCode", "genPostingType", "genBusPostingGroup",
+    "genProdPostingGroup", "balAccountType", "transactionNo", "debitAmount", "creditAmount",
+    "documentDate", "externalDocumentNo", "sourceType", "sourceNo", "noSeries", "taxAreaCode",
+    "taxLiable", "taxGroupCode", "useTax", "vatBusPostingGroup", "vatProdPostingGroup",
+    "additionalCurrencyAmount", "addCurrencyDebitAmount", "addCurrencyCreditAmount",
+    "closeIncomeStatementDimID", "icPartnerCode", "reversed", "reversedByEntryNo",
+    "reversedEntryNo", "gLAccountName", "journalTemplName", "dimensionSetID",
+    "shortcutDimension3Code", "shortcutDimension4Code", "shortcutDimension5Code",
+    "shortcutDimension6Code", "shortcutDimension7Code", "shortcutDimension8Code",
+    "lastDimCorrectionEntryNo", "lastDimCorrectionNode", "dimensionChangesCount",
+    "prodOrderNo", "faEntryType", "faEntryNo", "comment", "accountId", "lastModifiedDateTime",
+    "documentLineNo3PL", "wmsDocumentType", "wmsDocumentNo", "wmsDocumentLineNo",
+    "tmsDocumentType", "tmsDocumentNo", "tmsDocumentSequenceNo", "tmsDocumentLineNo", "ultimo","Entity"
 ]
 
 
