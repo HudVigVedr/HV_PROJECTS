@@ -201,28 +201,35 @@ if __name__ == "__main__":
 
         for folder_label, fname, err in total_errors:
             msg = f"[{folder_label}] Error in file {fname}: {err}"
+            overall_status = "Error"
             _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A", full_uri)
             logging.error(f"{msg} (email skipped)")
             _DEF.send_email_mfa(
-            subject=f"❌ {script_name} - Crash tijdens uitvoering",
-            body=msg,
-            from_address=_AUTH.email_sender,
-            to_address=["thom@blinksolutions.nl"],
-            tenant_id=_AUTH.guid_blink,
-            client_id=_AUTH.email_client_id,
-            client_secret=_AUTH.email_client_secret
-        )
+                subject=f"❌ {script_name} - Crash tijdens uitvoering",
+                body=msg,
+                from_address=_AUTH.email_sender,
+                to_address=["thom@blinksolutions.nl"],
+                tenant_id=_AUTH.guid_blink,
+                client_id=_AUTH.email_client_id,
+                client_secret=_AUTH.email_client_secret
+            )
+
+        # Log final status
+        end_time = datetime.datetime.now()
+        duration_min = int((end_time - start).total_seconds() / 60)
 
         if overall_status == "Success":
-            msg = f"All files processed successfully. Count: {len(total_refreshed)}"
-            _DEF.log_status(conn, "Success", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A", full_uri)
-            logging.info(msg)
+            msg = f"All files processed successfully. Refreshed: {len(total_refreshed)}, Errors: {len(total_errors)}"
+            _DEF.log_status(conn, "Success", script_cat, script_name, start, end_time, duration_min, msg, "Script", "N/A", full_uri)
+            logging.info("SQL log (Success) written.")
 
     except Exception as e:
+        end_time = datetime.datetime.now()
+        duration_min = int((end_time - start).total_seconds() / 60)
         msg = f"Script crash: {e}"
         logging.critical(msg)
         safe_log_fallback(msg)
-        _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A", full_uri)
+        _DEF.log_status(conn, "Error", script_cat, script_name, start, end_time, duration_min, msg, "Script", "N/A", full_uri)
         logging.error(f"{msg} (email skipped)")
         _DEF.send_email_mfa(
             subject=f"❌ {script_name} - Crash tijdens uitvoering",
@@ -233,6 +240,10 @@ if __name__ == "__main__":
             client_id=_AUTH.email_client_id,
             client_secret=_AUTH.email_client_secret
         )
-
+    finally:
+        if 'conn' in locals():
+            conn.close()
+            logging.info("Database connection closed.")
 
     logging.info("Script finished.")
+
