@@ -15,15 +15,18 @@ script_name = "Refresh finance excels"
 script_cat = "FIN_excel"
 
 # Define source/destination folders with labels
+
+
+
 folder_pairs = [
-    ('A', r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\A', r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\A'),
-    ('B', r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\B', r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\B'),
-    ('C', r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\C', r'C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\C'),
+    ('A', r'C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\A', r'C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\Refreshed Fin sheets\A'),
+    ('B', r'C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\B', r'C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\Refreshed Fin sheets\B'),
+    ('C', r'C:\Users\beheerder\Hudig & Veder\Rapportage - temp\C', r'C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\Refreshed Fin sheets\C'),
 ]
 
 # Set up logging
 now_str = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-log_folder = r"C:\Users\beheerder\Hudig & Veder\Rapportage - TestAutomation\Logging"
+log_folder = r"C:\Users\beheerder\Hudig & Veder\Rapportage - FS - uitgerold\Refreshed Fin sheets\Logging"
 os.makedirs(log_folder, exist_ok=True)
 log_path = os.path.join(log_folder, f"refresh_log_{now_str}.txt")
 
@@ -161,9 +164,6 @@ def refresh_and_copy_files(folder_label, folder_path, destination_folder):
 
 
 
-
-
-
 if __name__ == "__main__":
     _DEF.quit_all_excel_instances()
     logging.info("Script started: Refresh finance excels")
@@ -203,6 +203,15 @@ if __name__ == "__main__":
             msg = f"[{folder_label}] Error in file {fname}: {err}"
             _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A", full_uri)
             logging.error(f"{msg} (email skipped)")
+            _DEF.send_email_mfa(
+            subject=f"❌ {script_name} - Crash tijdens uitvoering",
+            body=msg,
+            from_address=_AUTH.email_sender,
+            to_address=["thom@blinksolutions.nl"],
+            tenant_id=_AUTH.guid_blink,
+            client_id=_AUTH.email_client_id,
+            client_secret=_AUTH.email_client_secret
+        )
 
         if overall_status == "Success":
             msg = f"All files processed successfully. Count: {len(total_refreshed)}"
@@ -215,5 +224,15 @@ if __name__ == "__main__":
         safe_log_fallback(msg)
         _DEF.log_status(conn, "Error", script_cat, script_name, start, datetime.datetime.now(), 0, msg, "Script", "N/A", full_uri)
         logging.error(f"{msg} (email skipped)")
+        _DEF.send_email_mfa(
+            subject=f"❌ {script_name} - Crash tijdens uitvoering",
+            body=msg,
+            from_address=_AUTH.email_sender,
+            to_address=["thom@blinksolutions.nl"],
+            tenant_id=_AUTH.guid_blink,
+            client_id=_AUTH.email_client_id,
+            client_secret=_AUTH.email_client_secret
+        )
+
 
     logging.info("Script finished.")
